@@ -1,0 +1,22 @@
+# Minimal Supabase CLI config for local development.
+# Run `supabase init` once if this file needs regenerating with a fresh
+# project_id; this file intentionally omits sections (auth providers,
+# storage, etc.) that aren't used by this foundation, to keep the
+# config legible to a reader rather than a full default dump.
+
+project_id = "astroverse-supabase"
+
+[db]
+port = 54322
+major_version = 15
+
+[api]
+port = 54321
+
+[auth]
+enabled = true
+# Email/OTP and OAuth are both supported natively by Supabase Auth
+# (Technical Bible B.9) — no custom token issuance code exists anywhere
+# in this codebase, unlike the earlier Fastify-based foundation, which
+# had to implement its own JWT signing.
+enable_signup = true
