@@ -67,12 +67,19 @@ export async function getAllMasteryXp(): Promise<Partial<Record<ZodiacSign, numb
  * already been credited today. Returns the resulting mastery progress
  * (whether or not anything was credited this call), so the caller can
  * surface the up-to-date tier without a second read.
+ *
+ * `bonusXp` is the player's passive Constellation Drawing bonus
+ * (src/lib/gameLogic/constellations.ts), passed in by the caller rather
+ * than read here — this keeps the dependency one-directional (the
+ * constellation layer reads mastery's explored set, not the reverse) and
+ * keeps this function a leaf with no cross-feature imports.
  */
-export async function grantDailyWorldVisitXp(zodiacSign: ZodiacSign): Promise<MasteryProgress> {
+export async function grantDailyWorldVisitXp(zodiacSign: ZodiacSign, bonusXp = 0): Promise<MasteryProgress> {
   const userId = await currentUserId();
   if (!userId) return masteryProgress(0);
 
   const today = todayLocalDateString();
+  const dailyAward = DAILY_WORLD_VISIT_XP + Math.max(0, Math.floor(bonusXp));
 
   const { data: existing, error: selectError } = await supabase
     .from('zodiac_mastery')
@@ -87,7 +94,7 @@ export async function grantDailyWorldVisitXp(zodiacSign: ZodiacSign): Promise<Ma
     return masteryProgress(existing.xp);
   }
 
-  const nextXp = (existing?.xp ?? 0) + DAILY_WORLD_VISIT_XP;
+  const nextXp = (existing?.xp ?? 0) + dailyAward;
 
   if (!existing) {
     const { error: insertError } = await supabase

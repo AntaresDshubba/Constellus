@@ -39,3 +39,9 @@ export type ZodiacMasteryRow = {
   last_xp_date: string | null;
   updated_at: string;
 };
+
+export type ConstellationDrawnRow = {
+  user_id: string;
+  constellation_id: string;
+  drawn_at: string;
+};

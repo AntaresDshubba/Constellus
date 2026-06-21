@@ -11,7 +11,7 @@
  */
 
 import { useMemo } from 'react';
-import { Html } from '@react-three/drei';
+import { Html, Line } from '@react-three/drei';
 import { ZODIAC_SIGNS } from '../../types/astrology';
 import type { ZodiacSign } from '../../types/astrology';
 
@@ -20,6 +20,8 @@ interface StarMapSceneProps {
   onSelectSign: (sign: ZodiacSign) => void;
   /** Current Zodiac Mastery tier per world, for the per-star badge. Worlds not yet visited are simply absent. */
   masteryTierBySign?: Partial<Record<ZodiacSign, number>>;
+  /** Member signs of each constellation the player has drawn — rendered as lines connecting their stars. */
+  drawnConstellationSigns?: ZodiacSign[][];
 }
 
 const SIGN_DISPLAY_NAME: Record<ZodiacSign, string> = {
@@ -28,7 +30,7 @@ const SIGN_DISPLAY_NAME: Record<ZodiacSign, string> = {
   sagittarius: 'Sagittarius', capricorn: 'Capricorn', aquarius: 'Aquarius', pisces: 'Pisces',
 };
 
-export function StarMapScene({ sunSign, onSelectSign, masteryTierBySign = {} }: StarMapSceneProps) {
+export function StarMapScene({ sunSign, onSelectSign, masteryTierBySign = {}, drawnConstellationSigns = [] }: StarMapSceneProps) {
   const starPositions = useMemo(
     () =>
       ZODIAC_SIGNS.map((sign, index) => {
@@ -42,11 +44,30 @@ export function StarMapScene({ sunSign, onSelectSign, masteryTierBySign = {} }: 
     [],
   );
 
+  const positionBySign = useMemo(() => {
+    const map = {} as Record<ZodiacSign, [number, number, number]>;
+    for (const { sign, position } of starPositions) map[sign] = position;
+    return map;
+  }, [starPositions]);
+
   return (
     <>
       <color attach="background" args={['#05050f']} />
       <ambientLight intensity={0.4} />
       <pointLight position={[0, 0, 0]} intensity={1.2} color="#e0d4ff" />
+
+      {/* Drawn constellations: a polyline through each one's member stars,
+          rendered under the stars so the star spheres sit on top. */}
+      {drawnConstellationSigns.map((signs, i) => (
+        <Line
+          key={`constellation-${i}`}
+          points={signs.map((s) => positionBySign[s])}
+          color="#9d4edd"
+          lineWidth={1.5}
+          transparent
+          opacity={0.55}
+        />
+      ))}
 
       {starPositions.map(({ sign, position }) => {
         // Every sign is enterable now; the Sun sign just gets the

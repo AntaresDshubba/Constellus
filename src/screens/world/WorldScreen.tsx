@@ -14,6 +14,8 @@ import { useWorld } from '../../hooks/useWorld';
 import { useWorldSave } from '../../hooks/useWorldSave';
 import { useZodiacMastery } from '../../hooks/useZodiacMastery';
 import { grantDailyWorldVisitXp } from '../../lib/zodiacMastery';
+import { getDrawnConstellationIds } from '../../lib/constellations';
+import { passiveVisitXpBonus } from '../../lib/gameLogic/constellations';
 import { WorldCanvas } from '../../nexus-render/r3f-backend/WorldCanvas';
 import { trackEvent } from '../../lib/analytics';
 import { ZODIAC_SIGNS } from '../../types/astrology';
@@ -55,13 +57,20 @@ function WorldScreenForSign({ sign }: { sign: ZodiacSign }) {
   // Zodiac Mastery visit XP (grantDailyWorldVisitXp is idempotent per day,
   // so this is safe even though the effect can re-run on re-entry).
   useEffect(() => {
-    if (baseLayer) {
-      void trackEvent('world_entered', { zodiacSign: sign });
-      void grantDailyWorldVisitXp(sign).then(setMastery).catch(() => {
-        // Mastery is a non-blocking overlay; a write failure must never
-        // disrupt the world the player is already standing in.
-      });
-    }
+    if (!baseLayer) return;
+    void trackEvent('world_entered', { zodiacSign: sign });
+    void (async () => {
+      try {
+        // The daily visit XP is boosted by the player's passive
+        // Constellation Drawing bonus, computed from the drawn set.
+        const drawnIds = await getDrawnConstellationIds();
+        const updated = await grantDailyWorldVisitXp(sign, passiveVisitXpBonus(drawnIds));
+        setMastery(updated);
+      } catch {
+        // Mastery/constellations are a non-blocking overlay; a failure
+        // must never disrupt the world the player is already standing in.
+      }
+    })();
   }, [baseLayer?.id, sign, setMastery]);
 
   if (loading) {
