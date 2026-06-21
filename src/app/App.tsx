@@ -17,6 +17,7 @@ import { StarPassScreen } from '../screens/star-pass/StarPassScreen';
 import { ConvergenceScreen } from '../screens/convergence/ConvergenceScreen';
 import { SynastryScreen } from '../screens/synastry/SynastryScreen';
 import { AscensionScreen } from '../screens/ascension/AscensionScreen';
+import { VoidScreen } from '../screens/void/VoidScreen';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -92,6 +93,14 @@ export function App() {
               element={
                 <AuthGate>
                   <AscensionScreen />
+                </AuthGate>
+              }
+            />
+            <Route
+              path="/void"
+              element={
+                <AuthGate>
+                  <VoidScreen />
                 </AuthGate>
               }
             />
