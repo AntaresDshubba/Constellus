@@ -37,6 +37,17 @@ export function WorldScene({ descriptor }: WorldSceneProps) {
   const calmMarkerBiomeId = descriptor.activeOverlayOperations.find((op) => op.type === 'spawn_marker')
     ?.targetBiomeId;
 
+  // Lunar glow: a soft overhead moonlight whose intensity tracks tonight's
+  // illuminated fraction (0 at new moon, full at full moon).
+  const lunarOp = descriptor.activeOverlayOperations.find((op) => op.type === 'lunar_glow');
+  const lunarIntensity = typeof lunarOp?.payload.intensity === 'number' ? lunarOp.payload.intensity : 0;
+  const lunarColor = typeof lunarOp?.payload.colorHex === 'string' ? lunarOp.payload.colorHex : '#cdd6ff';
+
+  // Sign resonance: when bodies transit this world's own sign, a gentle
+  // golden glow rises over the world. Intensity grows with how many.
+  const resonanceCount = (descriptor.activeOverlayOperations.find((op) => op.type === 'sign_resonance')
+    ?.payload.bodies as string[] | undefined)?.length ?? 0;
+
   return (
     <>
       <color attach="background" args={[effectiveColor]} />
@@ -46,6 +57,16 @@ export function WorldScene({ descriptor }: WorldSceneProps) {
       <directionalLight position={[10, 20, 10]} intensity={0.6} color="#cfd6ff" />
       {/* A second, dim warm light from below — Abyssia's bioluminescence is the implied light source, not a sun. */}
       <pointLight position={[0, -2, 0]} intensity={0.8} color="#3ddc97" distance={40} />
+
+      {/* Lunar glow: overhead moonlight scaled by tonight's phase. */}
+      {lunarIntensity > 0.02 && (
+        <directionalLight position={[0, 40, 0]} intensity={lunarIntensity * 0.9} color={lunarColor} />
+      )}
+
+      {/* Sign resonance: a golden glow rising over the world when bodies transit its sign. */}
+      {resonanceCount > 0 && (
+        <pointLight position={[0, 14, 0]} intensity={Math.min(resonanceCount, 3) * 0.4} color="#ffd166" distance={70} />
+      )}
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <circleGeometry args={[60, 64]} />

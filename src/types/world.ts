@@ -10,7 +10,25 @@
 
 import type { ZodiacSign } from './astrology';
 
-export type BiomeTheme = 'abyssal_trench' | 'bioluminescent_cavern' | 'obsidian_spire' | 'tidal_ruins';
+// The vocabulary of biome visual archetypes. Each world (src/lib/worldGen/
+// signWorlds.ts) is built from four of these, chosen to fit the sign's
+// element and character. The renderer (src/nexus-render/r3f-backend/Biome.tsx)
+// must provide a visual for every entry here — that exhaustiveness is enforced
+// by the Record<BiomeTheme, ...> visual table there, so adding a theme without
+// a visual is a compile error, not a silent fallback.
+export type BiomeTheme =
+  // Water (Cancer, Scorpio, Pisces) — the original Abyssia set plus two more.
+  | 'abyssal_trench' | 'bioluminescent_cavern' | 'obsidian_spire' | 'tidal_ruins'
+  | 'mist_fen' | 'glacier_shelf'
+  // Fire (Aries, Leo, Sagittarius).
+  | 'molten_caldera' | 'ember_plain' | 'ashen_ridge' | 'ignis_spire'
+  | 'sunscorched_dune' | 'savanna_expanse'
+  // Earth (Taurus, Virgo, Capricorn).
+  | 'verdant_meadow' | 'stone_terrace' | 'crystal_hollow' | 'mossen_grove'
+  | 'highland_crag' | 'tilled_field'
+  // Air (Gemini, Libra, Aquarius).
+  | 'windswept_mesa' | 'cloud_terrace' | 'gale_spire' | 'aurora_flat'
+  | 'echo_canyon' | 'skyreef';
 
 export interface BiomeDescriptor {
   id: string;
@@ -66,7 +84,7 @@ export type TransitSnapshotRow = {
   computed_at: string;
 };
 
-export type OverlayOperationType = 'tint_ambient' | 'spawn_marker' | 'pulse_landmark';
+export type OverlayOperationType = 'tint_ambient' | 'spawn_marker' | 'pulse_landmark' | 'lunar_glow' | 'sign_resonance';
 
 export interface OverlayOperation {
   type: OverlayOperationType;

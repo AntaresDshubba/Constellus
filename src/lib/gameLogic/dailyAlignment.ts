@@ -18,6 +18,7 @@
  */
 
 import { createSeededRandom } from '../worldGen/seededRandom';
+import { lunarPhaseFromFraction } from './lunarCycle';
 import type { ChartAspect } from '@ephemeris/aspects';
 import type { ChallengeRating } from '../../types/dailyAlignment';
 import type { Planet, ZodiacSign, Element } from '../../types/astrology';
@@ -135,9 +136,15 @@ const BASE_QUEST_REWARD = 25;
  * (player, local date) — see src/lib/dailyAlignment.ts for how that's
  * constructed — so the same player on the same day always gets the
  * same content, even if this function is called more than once before
- * the result is persisted.
+ * the result is persisted. `lunarPhaseFraction` is today's cached moon
+ * phase (transit_snapshots.lunar_phase_fraction); it modulates the quest
+ * reward so the lunar cycle is felt in the loop (rewards peak at Bloom).
  */
-export function deriveDailyAlignmentContent(aspects: ChartAspect[], seed: string): DailyAlignmentContent {
+export function deriveDailyAlignmentContent(
+  aspects: ChartAspect[],
+  seed: string,
+  lunarPhaseFraction: number,
+): DailyAlignmentContent {
   const score = scoreAspects(aspects);
   const challengeRating = challengeRatingFromScore(score);
   const focusPlanet = deriveFocusPlanet(aspects);
@@ -147,9 +154,12 @@ export function deriveDailyAlignmentContent(aspects: ChartAspect[], seed: string
 
   // Harder days pay slightly more — a small, legible incentive not to
   // skip the loop specifically on the days it would be easiest to
-  // avoid, without making tense days punishing in any other way.
-  const rewardMultiplier = challengeRating === 'very_tense' ? 1.5 : challengeRating === 'tense' ? 1.2 : 1;
-  const questRewardAmount = Math.round(BASE_QUEST_REWARD * rewardMultiplier);
+  // avoid, without making tense days punishing in any other way. The
+  // lunar phase multiplies on top of that, so the same aspects pay most
+  // at the Full Moon (Bloom) and least at the New Moon (Seed).
+  const challengeMultiplier = challengeRating === 'very_tense' ? 1.5 : challengeRating === 'tense' ? 1.2 : 1;
+  const lunarMultiplier = lunarPhaseFromFraction(lunarPhaseFraction).rewardMultiplier;
+  const questRewardAmount = Math.round(BASE_QUEST_REWARD * challengeMultiplier * lunarMultiplier);
 
   return {
     cosmicWeatherSummary: COSMIC_WEATHER_BY_RATING[challengeRating],

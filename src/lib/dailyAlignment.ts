@@ -29,6 +29,9 @@ import { computePersonalTransitAspects } from './gameLogic/personalTransits';
 import { deriveDailyAlignmentContent } from './gameLogic/dailyAlignment';
 import { earnCurrency } from './ledger';
 import { recordDailyEngagement } from './momentum';
+import { recordBondEngagement } from './astroBond';
+import { grantStarPassXp } from './starPass';
+import { XP_PER_DAILY_QUEST } from './gameLogic/starPass';
 import { trackEvent } from './analytics';
 import type { DailyAlignmentRow } from '../types/dailyAlignment';
 
@@ -64,7 +67,7 @@ export async function generateTodaysAlignment(): Promise<DailyAlignmentRow> {
 
   const snapshot = await getGlobalTransitSnapshot();
   const aspects = computePersonalTransitAspects(profile.chart_json, snapshot);
-  const content = deriveDailyAlignmentContent(aspects, `${userId}:${localDate}`);
+  const content = deriveDailyAlignmentContent(aspects, `${userId}:${localDate}`, snapshot.lunar_phase_fraction);
 
   const { error: insertError } = await supabase.from('daily_alignments').insert({
     user_id: userId,
@@ -136,6 +139,11 @@ export async function completeDailyAlignmentQuest(alignmentId: string): Promise<
     refId: alignment.id,
   });
   await recordDailyEngagement();
+  // Deepening the Astro Bond and feeding the Star Pass are non-essential
+  // side effects of the daily quest: a failure here (e.g. a not-yet-applied
+  // migration) must never roll back the reward the player already earned.
+  await recordBondEngagement().catch(() => {});
+  await grantStarPassXp(XP_PER_DAILY_QUEST).catch(() => {});
 
   const { data: updated, error: updateError } = await supabase
     .from('daily_alignments')

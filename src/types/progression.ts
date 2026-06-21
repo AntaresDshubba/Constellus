@@ -31,3 +31,44 @@ export type MomentumRow = {
   consecutive_engaged_days: number;
   updated_at: string;
 };
+
+export type ZodiacMasteryRow = {
+  user_id: string;
+  zodiac_sign: string;
+  xp: number;
+  last_xp_date: string | null;
+  updated_at: string;
+};
+
+export type ConstellationDrawnRow = {
+  user_id: string;
+  constellation_id: string;
+  drawn_at: string;
+};
+
+export type AstroBondRow = {
+  user_id: string;
+  bond_points: number;
+  updated_at: string;
+};
+
+export type ArcProgressRow = {
+  user_id: string;
+  zodiac_sign: string;
+  steps_completed: number;
+  updated_at: string;
+};
+
+export type StarPassProgressRow = {
+  user_id: string;
+  season_id: string;
+  xp: number;
+  updated_at: string;
+};
+
+export type StarPassClaimRow = {
+  user_id: string;
+  season_id: string;
+  tier: number;
+  claimed_at: string;
+};

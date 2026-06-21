@@ -15,6 +15,9 @@ import { useNavigate } from 'react-router-dom';
 import { useCosmicProfile } from '../../hooks/useCosmicProfile';
 import { useDailyAlignment } from '../../hooks/useDailyAlignment';
 import { useMomentumAndWallet } from '../../hooks/useMomentumAndWallet';
+import { useLunarPhase } from '../../hooks/useLunarPhase';
+import { useAstroBond } from '../../hooks/useAstroBond';
+import { useStarPass } from '../../hooks/useStarPass';
 import { signOut } from '../../lib/auth';
 import { routeDialogue } from '../../lib/astro/dialogueRouter';
 
@@ -31,6 +34,9 @@ export function NexusScreen() {
   const { profile, loading: profileLoading } = useCosmicProfile();
   const { alignment, loading: alignmentLoading, error: alignmentError, completing, completeQuest } = useDailyAlignment();
   const { momentum, balance, loading: walletLoading, refresh: refreshWallet } = useMomentumAndWallet();
+  const lunarPhase = useLunarPhase();
+  const { bond, refresh: refreshBond } = useAstroBond();
+  const { status: starPass, refresh: refreshStarPass } = useStarPass();
 
   // first_daily_alignment is the one authored Astro moment this screen
   // can trigger deterministically from data already on hand: the
@@ -47,8 +53,9 @@ export function NexusScreen() {
       challengeRating: alignment.challenge_rating,
       focusPlanet: alignment.focus_planet,
       seed: alignment.id,
+      bondPhase: bond?.phase ?? 1,
     });
-  }, [alignment, momentum?.lastEngagedDate]);
+  }, [alignment, momentum?.lastEngagedDate, bond?.phase]);
 
   useEffect(() => {
     if (alignment?.quest_completed_at) {
@@ -65,7 +72,10 @@ export function NexusScreen() {
 
   async function handleCompleteQuest() {
     await completeQuest();
-    await refreshWallet();
+    // Completing the quest moves the wallet, Momentum, the Astro Bond, and
+    // the Star Pass (it grants season XP) — refresh all so the screen,
+    // including the Star Pass claimable badge, reflects the new state.
+    await Promise.all([refreshWallet(), refreshBond(), refreshStarPass()]);
   }
 
   return (
@@ -83,6 +93,29 @@ export function NexusScreen() {
               </>
             )}
           </p>
+        </section>
+      )}
+
+      {lunarPhase && (
+        <section
+          style={{
+            border: '1px solid #3a2a55', borderRadius: 8, padding: '10px 16px', marginBottom: 16,
+            display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12,
+            background: 'rgba(40,28,72,0.35)',
+          }}
+        >
+          <div>
+            <p style={{ margin: 0, fontWeight: 700 }}>{lunarPhase.name}</p>
+            <p style={{ margin: '2px 0 0', fontSize: 13, opacity: 0.85 }}>{lunarPhase.emphasis}</p>
+          </div>
+          <div style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+            <p style={{ margin: 0, fontSize: 12, opacity: 0.7 }}>{lunarPhase.illuminationPct}% lit</p>
+            {lunarPhase.rewardMultiplier > 1 && (
+              <p style={{ margin: '2px 0 0', fontSize: 12, color: '#e0aaff' }}>
+                ×{lunarPhase.rewardMultiplier.toFixed(2)} rewards
+              </p>
+            )}
+          </div>
         </section>
       )}
 
@@ -127,6 +160,28 @@ export function NexusScreen() {
         )}
       </section>
 
+      {bond && (
+        <section style={{ border: '1px solid #3a2a55', borderRadius: 8, padding: 16, marginBottom: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <p style={{ margin: 0, fontWeight: 700 }}>
+              Astro Bond — {bond.name} <span style={{ opacity: 0.6, fontWeight: 400, fontSize: 12 }}>(Phase {bond.phase})</span>
+            </p>
+            {!bond.atLaunchMax && bond.pointsForNextPhase !== null && (
+              <span style={{ fontSize: 12, opacity: 0.7 }}>{bond.pointsIntoPhase}/{bond.pointsForNextPhase}</span>
+            )}
+          </div>
+          <p style={{ margin: '4px 0 8px', fontSize: 13, opacity: 0.85 }}>{bond.narrativeBeat}</p>
+          <div style={{ height: 5, borderRadius: 3, background: 'rgba(255,255,255,0.15)' }}>
+            <div style={{ height: '100%', borderRadius: 3, width: `${Math.round(bond.fractionToNextPhase * 100)}%`, background: '#9d4edd' }} />
+          </div>
+          {bond.atLaunchMax && bond.nextPhase?.locked && (
+            <p style={{ margin: '8px 0 0', fontSize: 12, opacity: 0.6 }}>
+              Next: {bond.nextPhase.name} — {bond.nextPhase.narrativeBeat}
+            </p>
+          )}
+        </section>
+      )}
+
       <section style={{ marginBottom: 16, display: 'flex', gap: 16 }}>
         <div style={{ border: '1px solid #444', borderRadius: 8, padding: 12, flex: 1 }}>
           <p style={{ margin: 0, fontSize: 12, opacity: 0.7 }}>Momentum</p>
@@ -148,6 +203,17 @@ export function NexusScreen() {
 
       <button onClick={() => navigate('/star-map')} style={{ marginRight: 8 }}>
         Open Star Map
+      </button>
+      <button onClick={() => navigate('/star-pass')} style={{ marginRight: 8 }}>
+        Star Pass
+        {starPass && starPass.claimableCount > 0 && (
+          <span style={{ marginLeft: 6, padding: '0 6px', borderRadius: 8, background: '#9d4edd', color: '#fff', fontSize: 12 }}>
+            {starPass.claimableCount}
+          </span>
+        )}
+      </button>
+      <button onClick={() => navigate('/convergence')} style={{ marginRight: 8 }}>
+        The Convergence
       </button>
       <button onClick={handleSignOut}>Sign out</button>
     </div>

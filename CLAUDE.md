@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this project is
 
-**Astroverse: Constellation Nexus** — a first-playable build of an astrology-driven 3D exploration game. Stack: **React + TypeScript + Vite + React Three Fiber + Three.js + Zustand + Supabase**. It is a separate, parallel project from the older `astroverse-foundation` (Fastify/Postgres/raw Three.js) and shares no code with it. Scope implemented: Phase 0 (auth, profiles, consent, persistence), Phase 1 (natal engine, one world — Scorpio/Abyssia, star map, base layer + transit overlay, mobile controls, saves), Phase 2 (the Daily Minimum loop), and Phase 3 instrumentation only.
+**Astroverse: Constellation Nexus** — a first-playable build of an astrology-driven 3D exploration game. Stack: **React + TypeScript + Vite + React Three Fiber + Three.js + Zustand + Supabase**. It is a separate, parallel project from the older `astroverse-foundation` (Fastify/Postgres/raw Three.js) and shares no code with it. Scope implemented: Phase 0 (auth, profiles, consent, persistence), Phase 1 (natal engine, all twelve zodiac worlds, star map, base layer + transit overlay, mobile controls, saves), Phase 2 (the Daily Minimum loop), and Phase 3 instrumentation only.
 
 `README.md` is the authoritative narrative of what's built and why, including deliberate scope boundaries. Read it before making non-trivial changes.
 
@@ -49,7 +49,7 @@ The codebase is built around a few hard boundaries that are deliberate, not inci
 
 - **One ephemeris cache, two readers.** Phase 1's Transit Overlay and Phase 2's personal transits read the **same** `transit_snapshots` global cache (one fetch path, not two). Personal transits are computed lazily on read via `computeCrossAspects` against each player's natal chart — never precomputed per player, never recomputed per request.
 
-- **The Base Layer is generated once and never mutated.** `getOrGenerateBaseLayerWorld` is deterministic and seeded, runs once per player, and only handles `'scorpio'` (throws for any other sign by design). The Transit Overlay composites on top of it (tint_ambient / pulse_landmark / spawn_marker) without ever mutating the Base Layer.
+- **The Base Layer is generated once and never mutated.** `getOrGenerateBaseLayerWorld` is deterministic and seeded, runs once per player, and is sign-agnostic — all twelve signs are generatable. The per-sign *content* (world name, four biome archetypes, ambient color, four authored landmarks) lives in `src/lib/worldGen/signWorlds.ts`; the generic generation algorithm in `src/lib/worldGen/generateWorld.ts` combines that content with the seed. Scorpio's profile reproduces the original Abyssia output byte-for-byte (same `abyssia-` ids, biomes, and landmark text), so worlds already persisted for Scorpio players are unaffected. The Transit Overlay composites on top of any world (tint_ambient / pulse_landmark / spawn_marker) without ever mutating the Base Layer.
 
 - **Astro's dialogue has no live LLM.** `src/lib/astro/` has an authored tier (a handful of hand-written situations) and a procedural fallback recombined from small parts, behind a Dialogue Router. The absence of any LLM integration point here is a deliberate Phase 2 boundary, not an oversight.
 
@@ -63,7 +63,7 @@ The codebase is built around a few hard boundaries that are deliberate, not inci
 
 - **Unload-time analytics go through `navigator.sendBeacon`, not the Supabase client.** A page-teardown `fetch` is unreliable (notably iOS Safari). Because `sendBeacon` cannot set headers, the request arrives unauthenticated, so `session_ended` beacon rows are inserted with `user_id: null` (real id carried only as an informational payload property, never for access control) — and the RLS policy accommodates exactly the `user_id is null` branch and nothing looser. Do not "fix" that policy into an always-true check.
 
-- **Mind the documented Phase scope.** Several limitations are intentional, not bugs: simplified Placidus house approximation (only a house *bucket* is ever needed), three transit-overlay operation types, scorpio-only world generation, a small explicit (non-LLM, non-authoritative) Daily Alignment rule set, five authored Astro situations, and analytics RLS that only lets a player read their own events (cross-player funnel/retention is a service-role/dashboard concern, intentionally not built). See `README.md` "Known simplifications" before "fixing" any of these.
+- **Mind the documented Phase scope.** Several limitations are intentional, not bugs: simplified Placidus house approximation (only a house *bucket* is ever needed), three transit-overlay operation types, a small explicit (non-LLM, non-authoritative) Daily Alignment rule set, five authored Astro situations, and analytics RLS that only lets a player read their own events (cross-player funnel/retention is a service-role/dashboard concern, intentionally not built). See `README.md` "Known simplifications" before "fixing" any of these.
 
 ## Reference docs in the repo
 
