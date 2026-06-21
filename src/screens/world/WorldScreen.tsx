@@ -14,6 +14,7 @@ import { useWorld } from '../../hooks/useWorld';
 import { useWorldSave } from '../../hooks/useWorldSave';
 import { useZodiacMastery } from '../../hooks/useZodiacMastery';
 import { useArcQuest } from '../../hooks/useArcQuest';
+import { useWorldAudio } from '../../hooks/useWorldAudio';
 import { grantDailyWorldVisitXp, getMastery } from '../../lib/zodiacMastery';
 import { getDrawnConstellationIds } from '../../lib/constellations';
 import { passiveVisitXpBonus } from '../../lib/gameLogic/constellations';
@@ -51,6 +52,7 @@ function WorldScreenForSign({ sign }: { sign: ZodiacSign }) {
   useWorldSave(sign);
   const { progress: mastery, setProgress: setMastery } = useZodiacMastery(sign);
   const { status: arc, completing: arcCompleting, completeStep } = useArcQuest(sign);
+  const { enabled: audioOn, toggle: toggleAudio, profile: audioProfile } = useWorldAudio(sign);
   const [arcMessage, setArcMessage] = useState<string | null>(null);
 
   async function handleCompleteArcStep() {
@@ -132,6 +134,16 @@ function WorldScreenForSign({ sign }: { sign: ZodiacSign }) {
         />
       )}
 
+      <button
+        onClick={toggleAudio}
+        title={audioOn ? `Ambient: ${audioProfile.mode} (${audioProfile.description})` : 'Enable ambient sound'}
+        style={{
+          position: 'absolute', top: 16, right: 92, padding: '6px 12px', borderRadius: 6,
+          background: 'rgba(20,20,30,0.7)', color: '#e6e6f0', border: '1px solid #444', cursor: 'pointer',
+        }}
+      >
+        {audioOn ? '🔊' : '🔇'}
+      </button>
       <button
         onClick={() => navigate('/star-map')}
         style={{
