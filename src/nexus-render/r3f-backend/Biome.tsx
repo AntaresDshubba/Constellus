@@ -71,6 +71,26 @@ export function Biome({ biome, showCalmMarker }: BiomeProps) {
   const radius = useMemo(() => randomInRange(rng, 1.8, 3.2), [rng]);
   const visual = BIOME_VISUALS[biome.theme];
 
+  // Deterministic detail cluster scattered around the central mesh, so a
+  // biome reads as a place rather than a lone shape. Seeded from a
+  // dedicated sub-seed so tuning the cluster never shifts the main mesh
+  // (and vice versa), keeping the Base Layer byte-stable. Spires get
+  // sharp shards; mounds get faceted stones.
+  const props = useMemo(() => {
+    const prng = createSeededRandom(`${biome.seed}:props`);
+    const count = 5 + Math.floor(prng() * 4); // 5–8
+    return Array.from({ length: count }, () => {
+      const angle = prng() * Math.PI * 2;
+      const dist = radius * 1.2 + prng() * radius * 1.4;
+      const scale = 0.3 + prng() * 0.6;
+      return {
+        position: [Math.cos(angle) * dist, scale * 0.6, Math.sin(angle) * dist] as [number, number, number],
+        scale,
+        rotation: prng() * Math.PI * 2,
+      };
+    });
+  }, [biome.seed, radius]);
+
   return (
     <group position={biome.position}>
       {visual.shape === 'spire' ? (
@@ -96,6 +116,22 @@ export function Biome({ biome, showCalmMarker }: BiomeProps) {
           />
         </mesh>
       )}
+
+      {/* Detail cluster: small shards (spire) or faceted stones (mound). */}
+      {props.map((p, i) => (
+        <mesh key={i} position={p.position} rotation={[0, p.rotation, 0]} castShadow>
+          {visual.shape === 'spire'
+            ? <coneGeometry args={[p.scale * 0.4, p.scale * 1.6, 5]} />
+            : <icosahedronGeometry args={[p.scale * 0.6, 0]} />}
+          <meshStandardMaterial
+            color={visual.accent}
+            emissive={visual.emissive ? visual.accent : '#000000'}
+            emissiveIntensity={visual.emissive ? 0.3 : 0}
+            metalness={visual.shape === 'spire' ? 0.5 : 0.2}
+            roughness={visual.shape === 'spire' ? 0.35 : 0.8}
+          />
+        </mesh>
+      ))}
 
       <pointLight color={visual.accent} intensity={0.6} distance={12} position={[0, height, 0]} />
 
