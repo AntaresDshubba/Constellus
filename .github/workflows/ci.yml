@@ -1,0 +1,37 @@
+name: CI
+
+# Runs the project's three correctness gates on every PR to main (and on
+# pushes to main). There is no unit-test runner or linter in this project;
+# the gates are a strict typecheck, a full production build, and the
+# ephemeris reference check — the same checks run locally and by the
+# SessionStart hook.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # npm ci for a clean, lockfile-exact install in CI (unlike the
+      # cache-friendly `npm install` the web SessionStart hook uses).
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck (tsc --noEmit, strict)
+        run: npm run typecheck
+
+      - name: Build (tsc + vite build)
+        run: npm run build
+
+      - name: Ephemeris reference check
+        run: npm run verify:ephemeris
