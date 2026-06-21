@@ -31,15 +31,20 @@ export async function getMyBond(): Promise<BondProgress> {
   return bondProgress(data?.bond_points ?? 0);
 }
 
-/**
- * Add this quest's bond points, clamped to the launch cap. Upsert by
- * primary key (user_id): a first engagement inserts the row, later ones
- * read-modify-write. Returns the resulting progress so the caller can
- * surface it without a second read.
- */
+/** Completing a Daily Alignment quest deepens the bond by a fixed amount. */
 export async function recordBondEngagement(): Promise<BondProgress> {
+  return grantBondPoints(BOND_POINTS_PER_QUEST);
+}
+
+/**
+ * Add bond points (clamped to the launch cap) from any source — the daily
+ * quest, an Arc step, etc. Upsert by primary key (user_id): a first grant
+ * inserts the row, later ones read-modify-write. Returns the resulting
+ * progress so the caller can surface it without a second read.
+ */
+export async function grantBondPoints(amount: number): Promise<BondProgress> {
   const userId = await currentUserId();
-  if (!userId) return bondProgress(0);
+  if (!userId || amount <= 0) return bondProgress(0);
 
   const { data: existing, error: selectError } = await supabase
     .from('astro_bond')
@@ -48,7 +53,7 @@ export async function recordBondEngagement(): Promise<BondProgress> {
     .maybeSingle();
   if (selectError) throw selectError;
 
-  const nextPoints = clampBondPoints((existing?.bond_points ?? 0) + BOND_POINTS_PER_QUEST);
+  const nextPoints = clampBondPoints((existing?.bond_points ?? 0) + Math.floor(amount));
 
   if (!existing) {
     const { error: insertError } = await supabase

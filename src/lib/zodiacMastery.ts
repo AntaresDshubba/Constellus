@@ -63,6 +63,55 @@ export async function getAllMasteryXp(): Promise<Partial<Record<ZodiacSign, numb
 }
 
 /**
+ * Add mastery XP to a world directly, with NO daily gate — for reward
+ * grants that aren't the daily visit (e.g. completing an Arc step). Does
+ * not touch last_xp_date, so it never interferes with the once-per-day
+ * visit accounting. Upserts by (user, sign) and returns the new progress.
+ */
+export async function addMasteryXp(zodiacSign: ZodiacSign, amount: number): Promise<MasteryProgress> {
+  const userId = await currentUserId();
+  if (!userId || amount <= 0) return masteryProgress(0);
+
+  const { data: existing, error: selectError } = await supabase
+    .from('zodiac_mastery')
+    .select('xp')
+    .eq('user_id', userId)
+    .eq('zodiac_sign', zodiacSign)
+    .maybeSingle();
+  if (selectError) throw selectError;
+
+  const nextXp = (existing?.xp ?? 0) + Math.floor(amount);
+
+  if (!existing) {
+    const { error: insertError } = await supabase
+      .from('zodiac_mastery')
+      .insert({ user_id: userId, zodiac_sign: zodiacSign, xp: nextXp });
+    if (insertError && insertError.code !== '23505') throw insertError;
+    if (!insertError) return masteryProgress(nextXp);
+  }
+
+  // Re-read and increment relative to the now-current value to avoid
+  // clobbering a concurrent write with a stale base.
+  const { data: current, error: rereadError } = await supabase
+    .from('zodiac_mastery')
+    .select('xp')
+    .eq('user_id', userId)
+    .eq('zodiac_sign', zodiacSign)
+    .single();
+  if (rereadError) throw rereadError;
+
+  const { data: updated, error: updateError } = await supabase
+    .from('zodiac_mastery')
+    .update({ xp: current.xp + Math.floor(amount) })
+    .eq('user_id', userId)
+    .eq('zodiac_sign', zodiacSign)
+    .select('xp')
+    .single();
+  if (updateError) throw updateError;
+  return masteryProgress(updated.xp);
+}
+
+/**
  * Credit the once-per-day world-visit XP for a world, if it hasn't
  * already been credited today. Returns the resulting mastery progress
  * (whether or not anything was credited this call), so the caller can

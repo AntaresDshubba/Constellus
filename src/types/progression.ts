@@ -51,3 +51,10 @@ export type AstroBondRow = {
   bond_points: number;
   updated_at: string;
 };
+
+export type ArcProgressRow = {
+  user_id: string;
+  zodiac_sign: string;
+  steps_completed: number;
+  updated_at: string;
+};
