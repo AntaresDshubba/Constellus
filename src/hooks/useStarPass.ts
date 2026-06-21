@@ -43,5 +43,5 @@ export function useStarPass() {
     }
   }, []);
 
-  return { status, loading, claimingTier, claim };
+  return { status, loading, claimingTier, claim, refresh };
 }

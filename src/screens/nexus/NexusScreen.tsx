@@ -36,7 +36,7 @@ export function NexusScreen() {
   const { momentum, balance, loading: walletLoading, refresh: refreshWallet } = useMomentumAndWallet();
   const lunarPhase = useLunarPhase();
   const { bond, refresh: refreshBond } = useAstroBond();
-  const { status: starPass } = useStarPass();
+  const { status: starPass, refresh: refreshStarPass } = useStarPass();
 
   // first_daily_alignment is the one authored Astro moment this screen
   // can trigger deterministically from data already on hand: the
@@ -72,7 +72,10 @@ export function NexusScreen() {
 
   async function handleCompleteQuest() {
     await completeQuest();
-    await Promise.all([refreshWallet(), refreshBond()]);
+    // Completing the quest moves the wallet, Momentum, the Astro Bond, and
+    // the Star Pass (it grants season XP) — refresh all so the screen,
+    // including the Star Pass claimable badge, reflects the new state.
+    await Promise.all([refreshWallet(), refreshBond(), refreshStarPass()]);
   }
 
   return (
