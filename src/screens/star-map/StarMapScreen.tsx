@@ -11,17 +11,40 @@
  */
 
 import { Canvas } from '@react-three/fiber';
-import { Suspense } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { OrbitControls } from '@react-three/drei';
 import { useContextRecovery } from '../../nexus-render/core/useContextRecovery';
 import { StarMapScene } from '../../nexus-render/r3f-backend/StarMapScene';
 import { useCosmicProfile } from '../../hooks/useCosmicProfile';
+import { getAllMasteryXp } from '../../lib/zodiacMastery';
+import { tierForXp } from '../../lib/gameLogic/zodiacMastery';
+import type { ZodiacSign } from '../../types/astrology';
 
 export function StarMapScreen() {
   const navigate = useNavigate();
   const { profile, loading } = useCosmicProfile();
   const { reconnecting, onCanvasCreated } = useContextRecovery();
+
+  // Mastery is loaded alongside the star map so each world's star can
+  // show its tier; a load failure just leaves the badges off, never
+  // blocks the map.
+  const [masteryXpBySign, setMasteryXpBySign] = useState<Partial<Record<ZodiacSign, number>>>({});
+  useEffect(() => {
+    let cancelled = false;
+    getAllMasteryXp()
+      .then((xp) => { if (!cancelled) setMasteryXpBySign(xp); })
+      .catch(() => { /* badges are cosmetic; ignore */ });
+    return () => { cancelled = true; };
+  }, []);
+
+  const masteryTierBySign = useMemo(() => {
+    const tiers: Partial<Record<ZodiacSign, number>> = {};
+    for (const [sign, xp] of Object.entries(masteryXpBySign)) {
+      tiers[sign as ZodiacSign] = tierForXp(xp as number);
+    }
+    return tiers;
+  }, [masteryXpBySign]);
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -31,6 +54,7 @@ export function StarMapScreen() {
             <StarMapScene
               sunSign={profile?.sun_sign ?? null}
               onSelectSign={(sign) => navigate(`/world/${sign}`)}
+              masteryTierBySign={masteryTierBySign}
             />
           )}
         </Suspense>

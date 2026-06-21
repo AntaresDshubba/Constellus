@@ -31,3 +31,11 @@ export type MomentumRow = {
   consecutive_engaged_days: number;
   updated_at: string;
 };
+
+export type ZodiacMasteryRow = {
+  user_id: string;
+  zodiac_sign: string;
+  xp: number;
+  last_xp_date: string | null;
+  updated_at: string;
+};

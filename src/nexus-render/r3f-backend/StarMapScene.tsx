@@ -18,6 +18,8 @@ import type { ZodiacSign } from '../../types/astrology';
 interface StarMapSceneProps {
   sunSign: ZodiacSign | null;
   onSelectSign: (sign: ZodiacSign) => void;
+  /** Current Zodiac Mastery tier per world, for the per-star badge. Worlds not yet visited are simply absent. */
+  masteryTierBySign?: Partial<Record<ZodiacSign, number>>;
 }
 
 const SIGN_DISPLAY_NAME: Record<ZodiacSign, string> = {
@@ -26,7 +28,7 @@ const SIGN_DISPLAY_NAME: Record<ZodiacSign, string> = {
   sagittarius: 'Sagittarius', capricorn: 'Capricorn', aquarius: 'Aquarius', pisces: 'Pisces',
 };
 
-export function StarMapScene({ sunSign, onSelectSign }: StarMapSceneProps) {
+export function StarMapScene({ sunSign, onSelectSign, masteryTierBySign = {} }: StarMapSceneProps) {
   const starPositions = useMemo(
     () =>
       ZODIAC_SIGNS.map((sign, index) => {
@@ -76,6 +78,11 @@ export function StarMapScene({ sunSign, onSelectSign }: StarMapSceneProps) {
               >
                 {SIGN_DISPLAY_NAME[sign]}
                 {isSunSign ? ' ★ (Your Sun)' : ' (Enter)'}
+                {masteryTierBySign[sign] !== undefined && (
+                  <span style={{ display: 'block', fontSize: 11, fontWeight: 400, opacity: 0.8 }}>
+                    Mastery Tier {masteryTierBySign[sign]}
+                  </span>
+                )}
               </div>
             </Html>
           </group>
