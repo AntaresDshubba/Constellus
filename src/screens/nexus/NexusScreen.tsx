@@ -18,6 +18,7 @@ import { useMomentumAndWallet } from '../../hooks/useMomentumAndWallet';
 import { useLunarPhase } from '../../hooks/useLunarPhase';
 import { useAstroBond } from '../../hooks/useAstroBond';
 import { useStarPass } from '../../hooks/useStarPass';
+import { useSerpentaria } from '../../hooks/useSerpentaria';
 import { signOut } from '../../lib/auth';
 import { routeDialogue } from '../../lib/astro/dialogueRouter';
 
@@ -37,6 +38,7 @@ export function NexusScreen() {
   const lunarPhase = useLunarPhase();
   const { bond, refresh: refreshBond } = useAstroBond();
   const { status: starPass, refresh: refreshStarPass } = useStarPass();
+  const serpentaria = useSerpentaria();
 
   // first_daily_alignment is the one authored Astro moment this screen
   // can trigger deterministically from data already on hand: the
@@ -218,6 +220,14 @@ export function NexusScreen() {
       <button onClick={() => navigate('/synastry')} style={{ marginRight: 8 }}>
         Synastry
       </button>
+      <button onClick={() => navigate('/ascension')} style={{ marginRight: 8 }}>
+        Ascension
+      </button>
+      {serpentaria?.unlocked && (
+        <button onClick={() => navigate('/void')} style={{ marginRight: 8, color: '#e0aaff', borderColor: '#9d4edd' }}>
+          ⟁ Serpentaria
+        </button>
+      )}
       <button onClick={handleSignOut}>Sign out</button>
     </div>
   );

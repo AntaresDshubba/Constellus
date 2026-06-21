@@ -72,3 +72,10 @@ export type StarPassClaimRow = {
   tier: number;
   claimed_at: string;
 };
+
+export type StarwalkerRow = {
+  user_id: string;
+  level_xp: number;
+  ascension_tier: number;
+  updated_at: string;
+};

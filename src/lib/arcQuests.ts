@@ -16,6 +16,8 @@ import { addMasteryXp } from './zodiacMastery';
 import { grantBondPoints } from './astroBond';
 import { grantStarPassXp } from './starPass';
 import { XP_PER_ARC_STEP } from './gameLogic/starPass';
+import { grantStarwalkerXp } from './starwalker';
+import { STARWALKER_XP_PER_ARC_STEP } from './gameLogic/ascension';
 import { ARC_QUESTS, arcStatus, arcStepReward } from './gameLogic/arcQuests';
 import type { ArcStatus, ArcStepReward } from './gameLogic/arcQuests';
 import type { ZodiacSign } from '../types/astrology';
@@ -121,6 +123,7 @@ export async function completeArcStep(zodiacSign: ZodiacSign): Promise<ArcStepRe
   await addMasteryXp(zodiacSign, reward.masteryXp).catch(() => {});
   await grantBondPoints(reward.bondPoints).catch(() => {});
   await grantStarPassXp(XP_PER_ARC_STEP).catch(() => {});
+  await grantStarwalkerXp(STARWALKER_XP_PER_ARC_STEP).catch(() => {});
 
   return { status: arcStatus(zodiacSign, updated.steps_completed), advanced: true, reward };
 }
