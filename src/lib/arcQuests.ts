@@ -25,6 +25,22 @@ async function currentUserId(): Promise<string | null> {
   return session.session?.user.id ?? null;
 }
 
+/** Steps completed in every world the player has any Arc progress in, keyed by sign. */
+export async function getAllArcProgress(): Promise<Partial<Record<ZodiacSign, number>>> {
+  const userId = await currentUserId();
+  if (!userId) return {};
+
+  const { data, error } = await supabase
+    .from('arc_progress')
+    .select('zodiac_sign, steps_completed')
+    .eq('user_id', userId);
+  if (error) throw error;
+
+  const bySign: Partial<Record<ZodiacSign, number>> = {};
+  for (const row of data ?? []) bySign[row.zodiac_sign as ZodiacSign] = row.steps_completed;
+  return bySign;
+}
+
 export async function getArcStatus(zodiacSign: ZodiacSign): Promise<ArcStatus> {
   const userId = await currentUserId();
   if (!userId) return arcStatus(zodiacSign, 0);

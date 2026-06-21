@@ -209,6 +209,9 @@ export function NexusScreen() {
           </span>
         )}
       </button>
+      <button onClick={() => navigate('/convergence')} style={{ marginRight: 8 }}>
+        The Convergence
+      </button>
       <button onClick={handleSignOut}>Sign out</button>
     </div>
   );

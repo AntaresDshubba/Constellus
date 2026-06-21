@@ -14,6 +14,7 @@ import { StarMapScreen } from '../screens/star-map/StarMapScreen';
 import { WorldScreen } from '../screens/world/WorldScreen';
 import { NexusScreen } from '../screens/nexus/NexusScreen';
 import { StarPassScreen } from '../screens/star-pass/StarPassScreen';
+import { ConvergenceScreen } from '../screens/convergence/ConvergenceScreen';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -65,6 +66,14 @@ export function App() {
               element={
                 <AuthGate>
                   <StarPassScreen />
+                </AuthGate>
+              }
+            />
+            <Route
+              path="/convergence"
+              element={
+                <AuthGate>
+                  <ConvergenceScreen />
                 </AuthGate>
               }
             />
