@@ -15,6 +15,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCosmicProfile } from '../../hooks/useCosmicProfile';
 import { useDailyAlignment } from '../../hooks/useDailyAlignment';
 import { useMomentumAndWallet } from '../../hooks/useMomentumAndWallet';
+import { useLunarPhase } from '../../hooks/useLunarPhase';
 import { signOut } from '../../lib/auth';
 import { routeDialogue } from '../../lib/astro/dialogueRouter';
 
@@ -31,6 +32,7 @@ export function NexusScreen() {
   const { profile, loading: profileLoading } = useCosmicProfile();
   const { alignment, loading: alignmentLoading, error: alignmentError, completing, completeQuest } = useDailyAlignment();
   const { momentum, balance, loading: walletLoading, refresh: refreshWallet } = useMomentumAndWallet();
+  const lunarPhase = useLunarPhase();
 
   // first_daily_alignment is the one authored Astro moment this screen
   // can trigger deterministically from data already on hand: the
@@ -83,6 +85,29 @@ export function NexusScreen() {
               </>
             )}
           </p>
+        </section>
+      )}
+
+      {lunarPhase && (
+        <section
+          style={{
+            border: '1px solid #3a2a55', borderRadius: 8, padding: '10px 16px', marginBottom: 16,
+            display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12,
+            background: 'rgba(40,28,72,0.35)',
+          }}
+        >
+          <div>
+            <p style={{ margin: 0, fontWeight: 700 }}>{lunarPhase.name}</p>
+            <p style={{ margin: '2px 0 0', fontSize: 13, opacity: 0.85 }}>{lunarPhase.emphasis}</p>
+          </div>
+          <div style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+            <p style={{ margin: 0, fontSize: 12, opacity: 0.7 }}>{lunarPhase.illuminationPct}% lit</p>
+            {lunarPhase.rewardMultiplier > 1 && (
+              <p style={{ margin: '2px 0 0', fontSize: 12, color: '#e0aaff' }}>
+                ×{lunarPhase.rewardMultiplier.toFixed(2)} rewards
+              </p>
+            )}
+          </div>
         </section>
       )}
 
