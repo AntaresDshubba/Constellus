@@ -58,3 +58,17 @@ export type ArcProgressRow = {
   steps_completed: number;
   updated_at: string;
 };
+
+export type StarPassProgressRow = {
+  user_id: string;
+  season_id: string;
+  xp: number;
+  updated_at: string;
+};
+
+export type StarPassClaimRow = {
+  user_id: string;
+  season_id: string;
+  tier: number;
+  claimed_at: string;
+};

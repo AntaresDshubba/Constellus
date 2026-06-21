@@ -30,6 +30,8 @@ import { deriveDailyAlignmentContent } from './gameLogic/dailyAlignment';
 import { earnCurrency } from './ledger';
 import { recordDailyEngagement } from './momentum';
 import { recordBondEngagement } from './astroBond';
+import { grantStarPassXp } from './starPass';
+import { XP_PER_DAILY_QUEST } from './gameLogic/starPass';
 import { trackEvent } from './analytics';
 import type { DailyAlignmentRow } from '../types/dailyAlignment';
 
@@ -137,10 +139,11 @@ export async function completeDailyAlignmentQuest(alignmentId: string): Promise<
     refId: alignment.id,
   });
   await recordDailyEngagement();
-  // Deepening the Astro Bond is a non-essential side effect of the daily
-  // quest: a failure here (e.g. the astro_bond migration not yet applied)
-  // must never roll back the reward the player already earned.
+  // Deepening the Astro Bond and feeding the Star Pass are non-essential
+  // side effects of the daily quest: a failure here (e.g. a not-yet-applied
+  // migration) must never roll back the reward the player already earned.
   await recordBondEngagement().catch(() => {});
+  await grantStarPassXp(XP_PER_DAILY_QUEST).catch(() => {});
 
   const { data: updated, error: updateError } = await supabase
     .from('daily_alignments')

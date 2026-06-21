@@ -14,6 +14,8 @@ import { supabase } from './supabaseClient';
 import { earnCurrency } from './ledger';
 import { addMasteryXp } from './zodiacMastery';
 import { grantBondPoints } from './astroBond';
+import { grantStarPassXp } from './starPass';
+import { XP_PER_ARC_STEP } from './gameLogic/starPass';
 import { ARC_QUESTS, arcStatus, arcStepReward } from './gameLogic/arcQuests';
 import type { ArcStatus, ArcStepReward } from './gameLogic/arcQuests';
 import type { ZodiacSign } from '../types/astrology';
@@ -102,6 +104,7 @@ export async function completeArcStep(zodiacSign: ZodiacSign): Promise<ArcStepRe
   await earnCurrency({ amount: reward.stardust, reason: `arc_step:${zodiacSign}:${current}` }).catch(() => {});
   await addMasteryXp(zodiacSign, reward.masteryXp).catch(() => {});
   await grantBondPoints(reward.bondPoints).catch(() => {});
+  await grantStarPassXp(XP_PER_ARC_STEP).catch(() => {});
 
   return { status: arcStatus(zodiacSign, updated.steps_completed), advanced: true, reward };
 }

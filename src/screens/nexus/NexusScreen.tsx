@@ -17,6 +17,7 @@ import { useDailyAlignment } from '../../hooks/useDailyAlignment';
 import { useMomentumAndWallet } from '../../hooks/useMomentumAndWallet';
 import { useLunarPhase } from '../../hooks/useLunarPhase';
 import { useAstroBond } from '../../hooks/useAstroBond';
+import { useStarPass } from '../../hooks/useStarPass';
 import { signOut } from '../../lib/auth';
 import { routeDialogue } from '../../lib/astro/dialogueRouter';
 
@@ -35,6 +36,7 @@ export function NexusScreen() {
   const { momentum, balance, loading: walletLoading, refresh: refreshWallet } = useMomentumAndWallet();
   const lunarPhase = useLunarPhase();
   const { bond, refresh: refreshBond } = useAstroBond();
+  const { status: starPass } = useStarPass();
 
   // first_daily_alignment is the one authored Astro moment this screen
   // can trigger deterministically from data already on hand: the
@@ -198,6 +200,14 @@ export function NexusScreen() {
 
       <button onClick={() => navigate('/star-map')} style={{ marginRight: 8 }}>
         Open Star Map
+      </button>
+      <button onClick={() => navigate('/star-pass')} style={{ marginRight: 8 }}>
+        Star Pass
+        {starPass && starPass.claimableCount > 0 && (
+          <span style={{ marginLeft: 6, padding: '0 6px', borderRadius: 8, background: '#9d4edd', color: '#fff', fontSize: 12 }}>
+            {starPass.claimableCount}
+          </span>
+        )}
       </button>
       <button onClick={handleSignOut}>Sign out</button>
     </div>
