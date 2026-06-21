@@ -42,7 +42,7 @@ import type {
 import type { CosmicProfileRow } from '../types/cosmicProfile';
 import type { BaseLayerWorldRow, TransitSnapshotRow, WorldSaveRow } from '../types/world';
 import type { DailyAlignmentRow } from '../types/dailyAlignment';
-import type { CurrencyLedgerRow, CurrencyBalanceRow, MomentumRow, ZodiacMasteryRow, ConstellationDrawnRow, AstroBondRow, ArcProgressRow, StarPassProgressRow, StarPassClaimRow } from '../types/progression';
+import type { CurrencyLedgerRow, CurrencyBalanceRow, MomentumRow, ZodiacMasteryRow, ConstellationDrawnRow, AstroBondRow, ArcProgressRow, StarPassProgressRow, StarPassClaimRow, StarwalkerRow } from '../types/progression';
 import type { AnalyticsEventRow } from '../types/analytics';
 
 export interface Database {
@@ -149,6 +149,12 @@ export interface Database {
         Row: StarPassClaimRow;
         Insert: Omit<StarPassClaimRow, 'claimed_at'> & { claimed_at?: string };
         Update: Partial<StarPassClaimRow>;
+        Relationships: [];
+      };
+      starwalker: {
+        Row: StarwalkerRow;
+        Insert: Partial<StarwalkerRow> & { user_id: string };
+        Update: Partial<StarwalkerRow>;
         Relationships: [];
       };
     };

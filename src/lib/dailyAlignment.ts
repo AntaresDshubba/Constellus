@@ -32,6 +32,8 @@ import { recordDailyEngagement } from './momentum';
 import { recordBondEngagement } from './astroBond';
 import { grantStarPassXp } from './starPass';
 import { XP_PER_DAILY_QUEST } from './gameLogic/starPass';
+import { grantStarwalkerXp } from './starwalker';
+import { STARWALKER_XP_PER_QUEST } from './gameLogic/ascension';
 import { trackEvent } from './analytics';
 import type { DailyAlignmentRow } from '../types/dailyAlignment';
 
@@ -144,6 +146,7 @@ export async function completeDailyAlignmentQuest(alignmentId: string): Promise<
   // migration) must never roll back the reward the player already earned.
   await recordBondEngagement().catch(() => {});
   await grantStarPassXp(XP_PER_DAILY_QUEST).catch(() => {});
+  await grantStarwalkerXp(STARWALKER_XP_PER_QUEST).catch(() => {});
 
   const { data: updated, error: updateError } = await supabase
     .from('daily_alignments')

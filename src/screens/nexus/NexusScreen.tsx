@@ -218,6 +218,9 @@ export function NexusScreen() {
       <button onClick={() => navigate('/synastry')} style={{ marginRight: 8 }}>
         Synastry
       </button>
+      <button onClick={() => navigate('/ascension')} style={{ marginRight: 8 }}>
+        Ascension
+      </button>
       <button onClick={handleSignOut}>Sign out</button>
     </div>
   );
