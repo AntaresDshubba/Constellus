@@ -18,8 +18,6 @@ import { useContextRecovery } from '../../nexus-render/core/useContextRecovery';
 import { StarMapScene } from '../../nexus-render/r3f-backend/StarMapScene';
 import { useCosmicProfile } from '../../hooks/useCosmicProfile';
 
-const ENTERABLE_SIGN = 'scorpio' as const;
-
 export function StarMapScreen() {
   const navigate = useNavigate();
   const { profile, loading } = useCosmicProfile();
@@ -32,8 +30,7 @@ export function StarMapScreen() {
           {!loading && (
             <StarMapScene
               sunSign={profile?.sun_sign ?? null}
-              enterableSign={ENTERABLE_SIGN}
-              onSelectEnterable={() => navigate(`/world/${ENTERABLE_SIGN}`)}
+              onSelectSign={(sign) => navigate(`/world/${sign}`)}
             />
           )}
         </Suspense>
@@ -46,7 +43,7 @@ export function StarMapScreen() {
 
       <div style={{ position: 'absolute', top: 16, left: 16, color: '#e6e6f0', fontFamily: 'sans-serif' }}>
         <h2 style={{ margin: 0 }}>The Star Map</h2>
-        <p style={{ margin: '4px 0 0', fontSize: 13, opacity: 0.8 }}>Scorpio (Abyssia) is open. Tap its star to enter.</p>
+        <p style={{ margin: '4px 0 0', fontSize: 13, opacity: 0.8 }}>All twelve worlds are open. Tap any star to enter — your Sun sign glows gold.</p>
       </div>
 
       {reconnecting && (

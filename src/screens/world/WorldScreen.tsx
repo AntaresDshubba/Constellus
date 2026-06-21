@@ -57,7 +57,7 @@ function WorldScreenForSign({ sign }: { sign: ZodiacSign }) {
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#e6e6f0' }}>
-        Descending into {sign}…
+        Entering {sign.charAt(0).toUpperCase() + sign.slice(1)}…
       </div>
     );
   }
