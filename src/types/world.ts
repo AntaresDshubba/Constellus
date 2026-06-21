@@ -84,7 +84,7 @@ export type TransitSnapshotRow = {
   computed_at: string;
 };
 
-export type OverlayOperationType = 'tint_ambient' | 'spawn_marker' | 'pulse_landmark';
+export type OverlayOperationType = 'tint_ambient' | 'spawn_marker' | 'pulse_landmark' | 'lunar_glow' | 'sign_resonance';
 
 export interface OverlayOperation {
   type: OverlayOperationType;

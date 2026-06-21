@@ -113,6 +113,11 @@ function WorldScreenForSign({ sign }: { sign: ZodiacSign }) {
     activeOverlayOperations: overlay?.appliedOperations ?? [],
   };
 
+  // Bodies currently transiting this world's sign (from the Transit
+  // Overlay's sign_resonance op), surfaced as a "living sky" line.
+  const resonanceBodies = ((overlay?.appliedOperations.find((op) => op.type === 'sign_resonance')?.payload
+    .bodies as string[] | undefined) ?? []);
+
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <WorldCanvas descriptor={descriptor} />
@@ -123,6 +128,11 @@ function WorldScreenForSign({ sign }: { sign: ZodiacSign }) {
       >
         <h2 style={{ margin: 0 }}>{baseLayer.world_json.worldName}</h2>
         {mastery && <MasteryBar progress={mastery} />}
+        {resonanceBodies.length > 0 && (
+          <p style={{ margin: '6px 0 0', fontSize: 12, color: '#ffd166' }}>
+            ✦ {resonanceBodies.map(formatBodyName).join(', ')} transiting {sign.charAt(0).toUpperCase() + sign.slice(1)} — the sky resonates here today
+          </p>
+        )}
       </div>
 
       {arc && (
@@ -201,6 +211,11 @@ function ArcQuestPanel({
       {message && <p style={{ margin: '8px 0 0', fontSize: 12, color: '#e0aaff' }}>{message}</p>}
     </div>
   );
+}
+
+/** "north_node" -> "North Node", "sun" -> "Sun". */
+function formatBodyName(body: string): string {
+  return body.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
 
 /** Compact Zodiac Mastery readout shown in the world's corner overlay. */
