@@ -45,3 +45,9 @@ export type ConstellationDrawnRow = {
   constellation_id: string;
   drawn_at: string;
 };
+
+export type AstroBondRow = {
+  user_id: string;
+  bond_points: number;
+  updated_at: string;
+};

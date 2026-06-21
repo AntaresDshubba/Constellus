@@ -29,6 +29,7 @@ import { computePersonalTransitAspects } from './gameLogic/personalTransits';
 import { deriveDailyAlignmentContent } from './gameLogic/dailyAlignment';
 import { earnCurrency } from './ledger';
 import { recordDailyEngagement } from './momentum';
+import { recordBondEngagement } from './astroBond';
 import { trackEvent } from './analytics';
 import type { DailyAlignmentRow } from '../types/dailyAlignment';
 
@@ -136,6 +137,10 @@ export async function completeDailyAlignmentQuest(alignmentId: string): Promise<
     refId: alignment.id,
   });
   await recordDailyEngagement();
+  // Deepening the Astro Bond is a non-essential side effect of the daily
+  // quest: a failure here (e.g. the astro_bond migration not yet applied)
+  // must never roll back the reward the player already earned.
+  await recordBondEngagement().catch(() => {});
 
   const { data: updated, error: updateError } = await supabase
     .from('daily_alignments')

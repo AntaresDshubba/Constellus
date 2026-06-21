@@ -16,6 +16,7 @@ import { useCosmicProfile } from '../../hooks/useCosmicProfile';
 import { useDailyAlignment } from '../../hooks/useDailyAlignment';
 import { useMomentumAndWallet } from '../../hooks/useMomentumAndWallet';
 import { useLunarPhase } from '../../hooks/useLunarPhase';
+import { useAstroBond } from '../../hooks/useAstroBond';
 import { signOut } from '../../lib/auth';
 import { routeDialogue } from '../../lib/astro/dialogueRouter';
 
@@ -33,6 +34,7 @@ export function NexusScreen() {
   const { alignment, loading: alignmentLoading, error: alignmentError, completing, completeQuest } = useDailyAlignment();
   const { momentum, balance, loading: walletLoading, refresh: refreshWallet } = useMomentumAndWallet();
   const lunarPhase = useLunarPhase();
+  const { bond, refresh: refreshBond } = useAstroBond();
 
   // first_daily_alignment is the one authored Astro moment this screen
   // can trigger deterministically from data already on hand: the
@@ -49,8 +51,9 @@ export function NexusScreen() {
       challengeRating: alignment.challenge_rating,
       focusPlanet: alignment.focus_planet,
       seed: alignment.id,
+      bondPhase: bond?.phase ?? 1,
     });
-  }, [alignment, momentum?.lastEngagedDate]);
+  }, [alignment, momentum?.lastEngagedDate, bond?.phase]);
 
   useEffect(() => {
     if (alignment?.quest_completed_at) {
@@ -67,7 +70,7 @@ export function NexusScreen() {
 
   async function handleCompleteQuest() {
     await completeQuest();
-    await refreshWallet();
+    await Promise.all([refreshWallet(), refreshBond()]);
   }
 
   return (
@@ -151,6 +154,28 @@ export function NexusScreen() {
           </div>
         )}
       </section>
+
+      {bond && (
+        <section style={{ border: '1px solid #3a2a55', borderRadius: 8, padding: 16, marginBottom: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <p style={{ margin: 0, fontWeight: 700 }}>
+              Astro Bond — {bond.name} <span style={{ opacity: 0.6, fontWeight: 400, fontSize: 12 }}>(Phase {bond.phase})</span>
+            </p>
+            {!bond.atLaunchMax && bond.pointsForNextPhase !== null && (
+              <span style={{ fontSize: 12, opacity: 0.7 }}>{bond.pointsIntoPhase}/{bond.pointsForNextPhase}</span>
+            )}
+          </div>
+          <p style={{ margin: '4px 0 8px', fontSize: 13, opacity: 0.85 }}>{bond.narrativeBeat}</p>
+          <div style={{ height: 5, borderRadius: 3, background: 'rgba(255,255,255,0.15)' }}>
+            <div style={{ height: '100%', borderRadius: 3, width: `${Math.round(bond.fractionToNextPhase * 100)}%`, background: '#9d4edd' }} />
+          </div>
+          {bond.atLaunchMax && bond.nextPhase?.locked && (
+            <p style={{ margin: '8px 0 0', fontSize: 12, opacity: 0.6 }}>
+              Next: {bond.nextPhase.name} — {bond.nextPhase.narrativeBeat}
+            </p>
+          )}
+        </section>
+      )}
 
       <section style={{ marginBottom: 16, display: 'flex', gap: 16 }}>
         <div style={{ border: '1px solid #444', borderRadius: 8, padding: 12, flex: 1 }}>

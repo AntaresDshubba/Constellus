@@ -42,7 +42,7 @@ import type {
 import type { CosmicProfileRow } from '../types/cosmicProfile';
 import type { BaseLayerWorldRow, TransitSnapshotRow, WorldSaveRow } from '../types/world';
 import type { DailyAlignmentRow } from '../types/dailyAlignment';
-import type { CurrencyLedgerRow, CurrencyBalanceRow, MomentumRow, ZodiacMasteryRow, ConstellationDrawnRow } from '../types/progression';
+import type { CurrencyLedgerRow, CurrencyBalanceRow, MomentumRow, ZodiacMasteryRow, ConstellationDrawnRow, AstroBondRow } from '../types/progression';
 import type { AnalyticsEventRow } from '../types/analytics';
 
 export interface Database {
@@ -125,6 +125,12 @@ export interface Database {
         Row: ConstellationDrawnRow;
         Insert: Omit<ConstellationDrawnRow, 'drawn_at'> & { drawn_at?: string };
         Update: Partial<ConstellationDrawnRow>;
+        Relationships: [];
+      };
+      astro_bond: {
+        Row: AstroBondRow;
+        Insert: Partial<AstroBondRow> & { user_id: string };
+        Update: Partial<AstroBondRow>;
         Relationships: [];
       };
     };
