@@ -18,9 +18,10 @@
  * declines a tier never even sees that tier's input fields.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signUpOrSignInWithEmail, verifyOtp } from '../../lib/auth';
+import { supabase } from '../../lib/supabaseClient';
+import { signUpOrSignInWithEmail, verifyOtp, getCurrentUserId } from '../../lib/auth';
 import { useConsent } from '../../hooks/useConsent';
 import { useCosmicProfile } from '../../hooks/useCosmicProfile';
 import { trackEvent } from '../../lib/analytics';
@@ -72,6 +73,35 @@ export function OnboardingScreen() {
     void trackEvent('onboarding_started');
   }, []);
 
+  // Resume past the auth steps whenever a session already exists — either
+  // because the player clicked the magic link (detectSessionInUrl
+  // establishes the session on load) or because they're a returning user
+  // who authenticated but never finished onboarding. In both cases the
+  // age/email/verify steps are already done, so jump straight to birth data.
+  useEffect(() => {
+    const resumeIfAuthed = () =>
+      setStep((s) => (s === 'age_gate' || s === 'email_signin' || s === 'email_verify' ? 'birth_date' : s));
+    void getCurrentUserId().then((uid) => { if (uid) resumeIfAuthed(); });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) resumeIfAuthed();
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  // Essential-tier consent (which gates the birth date) is recorded once,
+  // the moment birth data collection begins — AFTER authentication
+  // (consent_records is RLS-scoped to auth.uid()) and regardless of
+  // whether the player arrived here via a typed code or a magic link.
+  const essentialConsentRecorded = useRef(false);
+  useEffect(() => {
+    if (step === 'birth_date' && !essentialConsentRecorded.current) {
+      essentialConsentRecorded.current = true;
+      void recordConsent('essential', true).catch(() => {
+        // Audit-trail write; a transient failure must not block the flow.
+      });
+    }
+  }, [step, recordConsent]);
+
   function toggleTag(list: string[], setList: (v: string[]) => void, tag: string) {
     setList(list.includes(tag) ? list.filter((t) => t !== tag) : [...list, tag]);
   }
@@ -101,10 +131,9 @@ export function OnboardingScreen() {
     setError(null);
     try {
       await verifyOtp(email, otpCode);
-      // A session now exists — record the essential-tier consent (the
-      // audit-trail entry for the birth data about to be collected)
-      // before showing any birth-data input.
-      await recordConsent('essential', true);
+      // Essential consent is recorded by the step-change effect when
+      // birth_date is reached (covers both the typed-code and magic-link
+      // paths in one place).
       setStep('birth_date');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'That code was incorrect or expired.');

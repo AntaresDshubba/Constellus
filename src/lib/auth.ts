@@ -26,6 +26,14 @@ export async function signUpOrSignInWithEmail(email: string, ageGroup: AgeGroup)
       // profiles row in the same transaction as auth.users — see that
       // migration's trigger for the other half of this.
       data: { age_group: ageGroup },
+      // Supabase's default email sends a magic LINK (editing it to send a
+      // 6-digit code requires custom SMTP). So support the link: send the
+      // player back to wherever this app is actually running, not the
+      // project's default Site URL. This origin must be in the Supabase
+      // redirect allowlist (Auth -> URL Configuration). detectSessionInUrl
+      // (on by default in supabaseClient) then establishes the session
+      // from the returned URL, and OnboardingScreen resumes at birth data.
+      emailRedirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
     },
   });
   if (error) throw error;
