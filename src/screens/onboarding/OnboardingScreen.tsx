@@ -76,13 +76,14 @@ export function OnboardingScreen() {
     setList(list.includes(tag) ? list.filter((t) => t !== tag) : [...list, tag]);
   }
 
-  async function handleAgeGateContinue() {
-    // Essential-tier consent (birth date itself) is never declinable —
-    // it is the minimum data the entire product is built on — but it is
-    // still RECORDED explicitly here, since consent_records is meant to
-    // be a complete audit trail of what was agreed to and when, not
-    // just the optional tiers.
-    await recordConsent('essential', true);
+  function handleAgeGateContinue() {
+    // Just advance to sign-in. Essential-tier consent (which gates the
+    // birth date) is recorded right after authentication in
+    // handleVerifyOtp — it CANNOT be recorded here, because
+    // consent_records is RLS-scoped to auth.uid() and there is no session
+    // yet at the age gate (recordConsent throws without one). It is still
+    // recorded before any birth data is collected, so the
+    // consent-precedes-collection ordering is preserved.
     setStep('email_signin');
   }
 
@@ -100,6 +101,10 @@ export function OnboardingScreen() {
     setError(null);
     try {
       await verifyOtp(email, otpCode);
+      // A session now exists — record the essential-tier consent (the
+      // audit-trail entry for the birth data about to be collected)
+      // before showing any birth-data input.
+      await recordConsent('essential', true);
       setStep('birth_date');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'That code was incorrect or expired.');
