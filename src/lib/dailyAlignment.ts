@@ -69,6 +69,7 @@ export async function generateTodaysAlignment(): Promise<DailyAlignmentRow> {
 
   const snapshot = await getGlobalTransitSnapshot();
   const aspects = computePersonalTransitAspects(profile.chart_json, snapshot);
+  const content = deriveDailyAlignmentContent(aspects, `${userId}:${localDate}`);
   const content = deriveDailyAlignmentContent(aspects, `${userId}:${localDate}`, snapshot.lunar_phase_fraction);
 
   const { error: insertError } = await supabase.from('daily_alignments').insert({

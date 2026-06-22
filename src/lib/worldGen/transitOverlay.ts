@@ -14,6 +14,9 @@
  * ON TOP OF the Base Layer's geometry without ever mutating the stored
  * world_json. This is "framework" in the literal sense for this phase —
  * Phase 1 implements the plumbing (cache, fetch-or-compute, a
+ * deterministic compositing function) and a SMALL set of real operation
+ * types, not the full richness of every possible transit effect; later
+ * phases add more operation types without changing this shape.
  * deterministic compositing function) and a set of real operation types,
  * not the full richness of every possible transit effect; later phases
  * add more operation types without changing this shape.

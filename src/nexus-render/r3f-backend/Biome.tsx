@@ -12,6 +12,20 @@
 
 import { useMemo } from 'react';
 import { createSeededRandom, randomInRange } from '../../lib/worldGen/seededRandom';
+import type { BiomeDescriptor } from '../../types/world';
+
+const THEME_COLORS: Record<BiomeDescriptor['theme'], string> = {
+  abyssal_trench: '#0d1b2a',
+  bioluminescent_cavern: '#1b4332',
+  obsidian_spire: '#10002b',
+  tidal_ruins: '#1d3461',
+};
+
+const THEME_ACCENT: Record<BiomeDescriptor['theme'], string> = {
+  abyssal_trench: '#415a77',
+  bioluminescent_cavern: '#52e89e',
+  obsidian_spire: '#7b2cbf',
+  tidal_ruins: '#3a86ff',
 import type { BiomeDescriptor, BiomeTheme } from '../../types/world';
 
 interface BiomeVisual {
@@ -69,6 +83,13 @@ export function Biome({ biome, showCalmMarker }: BiomeProps) {
   const rng = useMemo(() => createSeededRandom(biome.seed), [biome.seed]);
   const height = useMemo(() => randomInRange(rng, 2.5, 5), [rng]);
   const radius = useMemo(() => randomInRange(rng, 1.8, 3.2), [rng]);
+
+  return (
+    <group position={biome.position}>
+      {biome.theme === 'obsidian_spire' ? (
+        <mesh position={[0, height / 2, 0]} castShadow>
+          <coneGeometry args={[radius, height, 6]} />
+          <meshStandardMaterial color={THEME_COLORS[biome.theme]} metalness={0.6} roughness={0.3} />
   const visual = BIOME_VISUALS[biome.theme];
 
   // Deterministic detail cluster scattered around the central mesh, so a
@@ -108,6 +129,9 @@ export function Biome({ biome, showCalmMarker }: BiomeProps) {
         <mesh position={[0, height / 2, 0]} castShadow>
           <cylinderGeometry args={[radius, radius * 1.3, height, 8]} />
           <meshStandardMaterial
+            color={THEME_COLORS[biome.theme]}
+            emissive={biome.theme === 'bioluminescent_cavern' ? THEME_ACCENT[biome.theme] : '#000000'}
+            emissiveIntensity={biome.theme === 'bioluminescent_cavern' ? 0.4 : 0}
             color={visual.color}
             emissive={visual.emissive ? visual.accent : '#000000'}
             emissiveIntensity={visual.emissive ? 0.4 : 0}
@@ -117,6 +141,7 @@ export function Biome({ biome, showCalmMarker }: BiomeProps) {
         </mesh>
       )}
 
+      <pointLight color={THEME_ACCENT[biome.theme]} intensity={0.6} distance={12} position={[0, height, 0]} />
       {/* Detail cluster: small shards (spire) or faceted stones (mound). */}
       {props.map((p, i) => (
         <mesh key={i} position={p.position} rotation={[0, p.rotation, 0]} castShadow>

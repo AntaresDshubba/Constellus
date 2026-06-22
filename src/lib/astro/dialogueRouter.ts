@@ -39,5 +39,6 @@ export function routeDialogue(context: DialogueContext): string {
     const authored = findAuthoredLine(context.situation);
     if (authored) return authored.text;
   }
+  return generateProceduralLine(context.challengeRating, context.focusPlanet, context.seed);
   return generateProceduralLine(context.challengeRating, context.focusPlanet, context.seed, context.bondPhase ?? 1);
 }

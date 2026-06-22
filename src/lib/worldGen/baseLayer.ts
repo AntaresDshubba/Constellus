@@ -7,6 +7,30 @@
  * it checks for an existing row first and only calls the deterministic
  * generator (./abyssia.ts) on a true first visit.
  *
+ * This phase only ever calls this with zodiacSign='scorpio', since
+ * Abyssia is the one playable world — but the function itself doesn't
+ * hardcode that, so Phase 4 adding the other eleven signs is a matter of
+ * adding their generator files and a switch branch here, not changing
+ * this orchestration function's shape.
+ */
+
+import { supabase } from '../supabaseClient';
+import { generateAbyssiaWorld } from './abyssia';
+import type { BaseLayerWorldRow, WorldDescriptor } from '../../types/world';
+import type { ZodiacSign } from '../../types/astrology';
+
+function generateWorldForSign(seed: string, sign: ZodiacSign): WorldDescriptor {
+  switch (sign) {
+    case 'scorpio':
+      return generateAbyssiaWorld(seed);
+    default:
+      throw new Error(
+        `No world generator implemented for ${sign} yet — this build only implements Scorpio (Abyssia). ` +
+        'Adding a new sign means adding a sibling generator file under src/lib/worldGen/ and a case here.',
+      );
+  }
+}
+
  * All twelve signs are generatable: generateWorld (./generateWorld.ts)
  * combines the per-sign content profile (./signWorlds.ts) with the seed,
  * so this orchestration function is sign-agnostic — it persists whatever
@@ -35,6 +59,10 @@ export async function getOrGenerateBaseLayerWorld(zodiacSign: ZodiacSign): Promi
   // First visit: derive a stable seed from (userId, sign) — NOT from
   // Date.now() or anything time-dependent, since the seed itself must
   // be reproducible if this row is ever lost and needs reconstruction,
+  // and because the seed is what makes generateWorldForSign's output
+  // depend only on who the player is, not when they happened to visit.
+  const seed = `${userId}:${zodiacSign}`;
+  const worldDescriptor = generateWorldForSign(seed, zodiacSign);
   // and because the seed is what makes generateWorld's output
   // depend only on who the player is, not when they happened to visit.
   const seed = `${userId}:${zodiacSign}`;

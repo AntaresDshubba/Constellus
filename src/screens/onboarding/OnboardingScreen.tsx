@@ -76,6 +76,13 @@ export function OnboardingScreen() {
     setList(list.includes(tag) ? list.filter((t) => t !== tag) : [...list, tag]);
   }
 
+  async function handleAgeGateContinue() {
+    // Essential-tier consent (birth date itself) is never declinable —
+    // it is the minimum data the entire product is built on — but it is
+    // still RECORDED explicitly here, since consent_records is meant to
+    // be a complete audit trail of what was agreed to and when, not
+    // just the optional tiers.
+    await recordConsent('essential', true);
   function handleAgeGateContinue() {
     // Just advance to sign-in. Essential-tier consent (which gates the
     // birth date) is recorded right after authentication in

@@ -55,6 +55,8 @@ export function NexusScreen() {
       challengeRating: alignment.challenge_rating,
       focusPlanet: alignment.focus_planet,
       seed: alignment.id,
+    });
+  }, [alignment, momentum?.lastEngagedDate]);
       bondPhase: bond?.phase ?? 1,
     });
   }, [alignment, momentum?.lastEngagedDate, bond?.phase]);
@@ -74,6 +76,7 @@ export function NexusScreen() {
 
   async function handleCompleteQuest() {
     await completeQuest();
+    await refreshWallet();
     // Completing the quest moves the wallet, Momentum, the Astro Bond, and
     // the Star Pass (it grants season XP) — refresh all so the screen,
     // including the Star Pass claimable badge, reflects the new state.
