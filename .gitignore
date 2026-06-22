@@ -1,7 +1,3 @@
-node_modules
-.env.local
-.env
-dist
 # Local environment — never commit real project values
 .env
 .env.local

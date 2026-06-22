@@ -8,10 +8,6 @@
  * (autosave) with WorldCanvas (the actual R3F rendering).
  */
 
-import { useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useWorld } from '../../hooks/useWorld';
-import { useWorldSave } from '../../hooks/useWorldSave';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useWorld } from '../../hooks/useWorld';
@@ -72,12 +68,6 @@ function WorldScreenForSign({ sign }: { sign: ZodiacSign }) {
   // rather than just `sign`, so re-entering the same world in a later
   // session (a fresh baseLayer object from a fresh query) tracks a new
   // entry, while React's normal re-render churn within one mount does
-  // not produce duplicate events.
-  useEffect(() => {
-    if (baseLayer) {
-      void trackEvent('world_entered', { zodiacSign: sign });
-    }
-  }, [baseLayer?.id, sign]);
   // not produce duplicate events. The same moment credits the once-per-day
   // Zodiac Mastery visit XP (grantDailyWorldVisitXp is idempotent per day,
   // so this is safe even though the effect can re-run on re-entry).
@@ -101,7 +91,6 @@ function WorldScreenForSign({ sign }: { sign: ZodiacSign }) {
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#e6e6f0' }}>
-        Descending into {sign}…
         Entering {sign.charAt(0).toUpperCase() + sign.slice(1)}…
       </div>
     );
@@ -138,7 +127,6 @@ function WorldScreenForSign({ sign }: { sign: ZodiacSign }) {
         }}
       >
         <h2 style={{ margin: 0 }}>{baseLayer.world_json.worldName}</h2>
-      </div>
         {mastery && <MasteryBar progress={mastery} />}
         {resonanceBodies.length > 0 && (
           <p style={{ margin: '6px 0 0', fontSize: 12, color: '#ffd166' }}>

@@ -8,15 +8,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `README.md` is the authoritative narrative of what's built and why, including deliberate scope boundaries. Read it before making non-trivial changes.
 
-## History note: the tree was reconstructed from a flattened upload
+## CRITICAL: the committed tree is a flattened upload, not the real layout
 
-The early git history is a series of "Add files via upload" commits that flattened the whole project into the repository root, with byte-identical duplicate copies (`App.tsx`, `App.tsx 2`, ...) and cross-directory name collisions suffixed as distinct files (e.g. the event-*types* `analytics.ts` vs the *tracking lib* `analytics.ts`). That flat tree did not compile — `tsconfig.json`/`vite.config.ts` reference `src/` and `ephemeris/src/`, which did not exist. The nested layout below has since been **reconstructed** (each file routed to its home via its import graph, duplicates removed), and `npm run build` / `typecheck` / `verify:ephemeris` all pass. If you encounter a stray top-level `*.ts`/`*.tsx`/numbered-duplicate file, it is leftover flattening debris — the source of truth is under `src/`, `ephemeris/`, and `supabase/`.
+The git history is a series of "Add files via upload" commits. Every file lives in the **repository root**, and the original nested project (`src/...`, `ephemeris/src/...`, `supabase/migrations/...`) was flattened. Two consequences you must account for:
 
-## Commands (defined in package.json)
+1. **Duplicate copies exist.** Files appear as `App.tsx`, `App.tsx 2`, `App.tsx 3`, etc. The numbered copies are byte-identical duplicates of the same source.
+2. **Cross-directory name collisions are suffixed, not deduplicated.** When the same base name existed in more than one source directory, the flattening kept them as distinct numbered files. Example: `analytics.ts` (1382 B, the event-*types* file from `src/types/`) and `analytics 2.ts` (4370 B, the *tracking lib* from `src/lib/`) are genuinely different files that happen to share a base name. Likewise `dailyAlignment.ts` (907 B types) vs the 6210 B and 7723 B variants (lib vs gameLogic). Check file size/content, not just the name, to know which one you're looking at.
+
+**Because of this, the build/dev/test commands below will not run against the tree as committed** — `tsconfig.json` and `vite.config.ts` reference `src/` and `ephemeris/src/` directories that do not exist in the flat layout. Before anything compiles, the files must be restored into the structure the configs and `README.md` describe (see "Intended structure" below). If asked to build/run, surface this first; do not assume `npm run build` works as-is.
+
+## Commands (defined in package.json — valid once the structure is restored)
 
 ```bash
 npm install
-cp .env.example .env.local      # fill in Supabase project URL + anon key
+cp .env.example .env.local      # Supabase project URL + anon key (no .env.example is committed yet)
 npm run dev                     # Vite dev server on :5173
 npm run build                   # tsc -p tsconfig.json (full typecheck) then vite build
 npm run typecheck               # tsc --noEmit
@@ -34,7 +39,7 @@ Path aliases (in both `tsconfig.json` and `vite.config.ts`): `@/*` → `src/*`, 
 
 The codebase is built around a few hard boundaries that are deliberate, not incidental:
 
-- **The ephemeris is a sealed module.** All astronomy math lives in `ephemeris/` and has **zero dependency on `src/`**. Everything above it calls only the functions exported from `ephemeris/src/index.ts` (`computeNatalChart` is the single deterministic entry point); nothing in `src/` calls `eclipticLongitude`, `computeHouses`, or `computeAspects` directly. It implements **VSOP87** as an **original clean-room implementation of the published formulae** — it must never vendor, wrap, or link Swiss Ephemeris (AGPL/commercial; would force open-sourcing the whole app). See `ephemeris/README.md` (the licensing decision) for the full rationale and the npm "ephemeris" naming trap.
+- **The ephemeris is a sealed module.** All astronomy math lives in `ephemeris/` and has **zero dependency on `src/`**. Everything above it calls only the functions exported from `ephemeris/src/index.ts` (`computeNatalChart` is the single deterministic entry point); nothing in `src/` calls `eclipticLongitude`, `computeHouses`, or `computeAspects` directly. It implements **VSOP87** as an **original clean-room implementation of the published formulae** — it must never vendor, wrap, or link Swiss Ephemeris (AGPL/commercial; would force open-sourcing the whole app). See `README 3.md` (the ephemeris licensing decision) for the full rationale and the npm "ephemeris" naming trap.
 
 - **RLS is the security boundary, not application code.** Every table has Row Level Security with explicit per-table policies. Auth is passwordless email OTP via Supabase Auth — there is **no custom token issuance anywhere** (unlike the old Fastify foundation). When touching the seven migrations, the access model is the policies, not anything in `src/`.
 
@@ -63,5 +68,5 @@ The codebase is built around a few hard boundaries that are deliberate, not inci
 ## Reference docs in the repo
 
 - `README.md` — full feature/scope narrative and the bug/decision log (authoritative).
-- `ephemeris/README.md` — ephemeris licensing decision (VSOP87 vs Swiss Ephemeris).
+- `README 3.md` — ephemeris licensing decision (VSOP87 vs Swiss Ephemeris).
 - `Astroverse_GDD.docx`, `Astroverse_TechnicalBible_v2.docx` — design and technical source documents referenced throughout the code (e.g. GDD §18.1 download-size target drives the Vite `three` manualChunk).

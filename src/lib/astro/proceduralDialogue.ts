@@ -42,11 +42,6 @@ const PLANET_FLAVOR: Record<Planet, string> = {
   north_node: 'A pull toward something unfamiliar but right.',
 };
 
-export function generateProceduralLine(challengeRating: ChallengeRating, focusPlanet: Planet, seed: string): string {
-  const rng = createSeededRandom(`${seed}:procedural`);
-  const openers = OPENERS_BY_RATING[challengeRating];
-  const opener = openers[Math.floor(rng() * openers.length)]!;
-  return `Astro: "${opener} ${PLANET_FLAVOR[focusPlanet]}"`;
 // A closing touch whose warmth tracks the Astro Bond phase (GDD §10.4:
 // Astro speaks formally as a Stranger, shows personality as a Companion,
 // and mirrors emotionally as a Confidant). Phase 1 adds nothing (formal);
