@@ -28,11 +28,17 @@ replace or share code with `astroverse-foundation`.
   Birth Moment reveal.
 - Sun sign determination: real, not hardcoded — derived from actual
   ecliptic longitude at the resolved birth moment.
-- One playable zodiac world: **Scorpio (Abyssia)** — four biomes
-  (abyssal trench, bioluminescent cavern, obsidian spire, tidal ruins),
-  four authored landmarks with lore.
-- 3D star map: all twelve signs rendered, with Scorpio the only
-  enterable one and the player's own Sun sign highlighted.
+- Twelve playable zodiac worlds: each sign has its own world, four biome
+  archetypes, ambient color, and four authored landmarks with lore, all
+  grounded in the sign's traditional element/rulership/symbol — e.g.
+  **Scorpio (Abyssia)**, a fixed-water world of abyssal trench,
+  bioluminescent cavern, obsidian spire, and tidal ruins. The per-sign
+  content lives in `src/lib/worldGen/signWorlds.ts`; one generic
+  deterministic generator (`generateWorld.ts`) builds them all. (See "A
+  note on the worlds" below — none of these are named in the source
+  documents; the theming is art direction grounded in tradition.)
+- 3D star map: all twelve signs rendered and enterable, with the player's
+  own Sun sign highlighted distinctly (larger, gold).
 - Base Layer world generation: deterministic, seeded, generated once per
   player and never regenerated.
 - Transit Overlay framework: a real global-snapshot cache plus a working
@@ -135,13 +141,17 @@ decision itself on whether the personalization hypothesis (chart-seeded
 worlds feel personal) and the loop hypothesis (daily return) show real
 signal. No future code change in this project can substitute for that.
 
-## A note on "Abyssia"
+## A note on the worlds
 
-Nothing in the source documents this build is based on names the
-Scorpio world "Abyssia" or specifies its biomes. That naming and theming
-is art direction introduced during this build, grounded in Scorpio's
-conventional fixed-water/depth-and-transformation associations, not
-pulled from an existing GDD passage.
+Nothing in the source documents this build is based on names the twelve
+zodiac worlds or specifies their biomes. All of that — world names
+(Abyssia, Ignisar, Verdania, Zephyra, Lunara, Solhaven, Messaria,
+Aequora, Farreach, Aldekarn, Aetheris, Dreamtide), biome archetypes, and
+landmark lore — is art direction introduced during this build, grounded
+in each sign's conventional element/rulership/symbol associations (e.g.
+Scorpio's fixed-water depth-and-transformation, Aries' Mars-fire
+initiation, Libra's Venus-air balance), not pulled from an existing GDD
+passage. It lives in `src/lib/worldGen/signWorlds.ts`.
 
 ## Project layout
 
@@ -185,9 +195,13 @@ style preference; reverting any of those declarations back to
   (tint_ambient, pulse_landmark, spawn_marker) cover this phase's scope.
   The `OverlayOperation` shape is general; adding more operation types
   later doesn't require changing it.
-- **World generator coverage**: `getOrGenerateBaseLayerWorld` only
-  handles `'scorpio'` and throws a clear error for any other sign — by
-  design, since Abyssia is the one world this build implements.
+- **World generator coverage**: all twelve signs are generatable.
+  `getOrGenerateBaseLayerWorld` is sign-agnostic; per-sign content lives
+  in `src/lib/worldGen/signWorlds.ts` and the generic algorithm in
+  `generateWorld.ts`. Each world is still four biomes + four landmarks at
+  this phase's fidelity (simple geometry, not high-detail environment
+  art) — the *coverage* is complete, the *visual richness* per world is
+  deliberately still Phase-1 level.
 - **Nexus screen**: now the Daily Minimum loop's home (Phase 2), but
   still has no world-select beyond a Star Map link, no social/guild
   features, and no storefront — all explicitly out of scope for Phase

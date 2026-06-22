@@ -30,6 +30,8 @@ export interface DialogueContext {
   focusPlanet: Planet;
   /** Deterministic seed for the procedural fallback — see proceduralDialogue.ts. */
   seed: string;
+  /** Current Astro Bond phase (1..5), warming the procedural tone. Defaults to 1 (Stranger). */
+  bondPhase?: number;
 }
 
 export function routeDialogue(context: DialogueContext): string {
@@ -38,4 +40,5 @@ export function routeDialogue(context: DialogueContext): string {
     if (authored) return authored.text;
   }
   return generateProceduralLine(context.challengeRating, context.focusPlanet, context.seed);
+  return generateProceduralLine(context.challengeRating, context.focusPlanet, context.seed, context.bondPhase ?? 1);
 }

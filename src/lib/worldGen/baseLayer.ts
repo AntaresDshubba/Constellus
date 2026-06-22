@@ -31,6 +31,17 @@ function generateWorldForSign(seed: string, sign: ZodiacSign): WorldDescriptor {
   }
 }
 
+ * All twelve signs are generatable: generateWorld (./generateWorld.ts)
+ * combines the per-sign content profile (./signWorlds.ts) with the seed,
+ * so this orchestration function is sign-agnostic — it persists whatever
+ * world the deterministic generator returns, once, and never regenerates.
+ */
+
+import { supabase } from '../supabaseClient';
+import { generateWorld } from './generateWorld';
+import type { BaseLayerWorldRow } from '../../types/world';
+import type { ZodiacSign } from '../../types/astrology';
+
 export async function getOrGenerateBaseLayerWorld(zodiacSign: ZodiacSign): Promise<BaseLayerWorldRow> {
   const { data: session } = await supabase.auth.getSession();
   const userId = session.session?.user.id;
@@ -52,6 +63,10 @@ export async function getOrGenerateBaseLayerWorld(zodiacSign: ZodiacSign): Promi
   // depend only on who the player is, not when they happened to visit.
   const seed = `${userId}:${zodiacSign}`;
   const worldDescriptor = generateWorldForSign(seed, zodiacSign);
+  // and because the seed is what makes generateWorld's output
+  // depend only on who the player is, not when they happened to visit.
+  const seed = `${userId}:${zodiacSign}`;
+  const worldDescriptor = generateWorld(seed, zodiacSign);
 
   const { data: inserted, error: insertError } = await supabase
     .from('base_layer_worlds')

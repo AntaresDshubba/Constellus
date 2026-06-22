@@ -17,10 +17,23 @@
  * deterministic compositing function) and a SMALL set of real operation
  * types, not the full richness of every possible transit effect; later
  * phases add more operation types without changing this shape.
+ * deterministic compositing function) and a set of real operation types,
+ * not the full richness of every possible transit effect; later phases
+ * add more operation types without changing this shape.
+ *
+ * Operations come in two flavors. The retrograde-driven ones
+ * (pulse_landmark / tint_ambient / spawn_marker) react to the day's
+ * planetary motion. The two added later — lunar_glow and sign_resonance —
+ * make the world reflect facts the snapshot already carries but the early
+ * phase ignored: the Moon's phase (how much moonlight there is) and which
+ * bodies are currently transiting THIS world's own zodiac sign (a
+ * per-world "the sky is touching you today" highlight that changes as
+ * planets move between signs).
  */
 
 import { supabase } from '../supabaseClient';
 import { PLANETS, eclipticLongitude, isRetrograde, toJulianDay } from '@ephemeris/positions';
+import { signFromLongitude } from '@ephemeris/houses';
 import type { TransitSnapshotRow, OverlayOperation, OverlayCompositeResult, WorldDescriptor } from '../../types/world';
 import type { EphemerisBody } from '@ephemeris/positions';
 
@@ -144,6 +157,31 @@ export function compositeOverlay(world: WorldDescriptor, snapshot: TransitSnapsh
       type: 'spawn_marker',
       targetBiomeId: world.biomes[0]!.id,
       payload: { markerKind: 'calm_day' },
+    });
+  }
+
+  // Moonlight: how lit the world's sky is tracks the Moon's phase. The
+  // illuminated fraction comes straight from the snapshot's cached
+  // lunar_phase_fraction (0 = new → dark, 0.5 = full → brightest), so this
+  // is the same moon the Lunar Cycle uses, reflected in the world itself.
+  const illuminated = (1 - Math.cos(snapshot.lunar_phase_fraction * 2 * Math.PI)) / 2;
+  operations.push({
+    type: 'lunar_glow',
+    targetBiomeId: null,
+    payload: { intensity: Math.round(illuminated * 100) / 100, colorHex: '#cdd6ff' },
+  });
+
+  // Sign resonance: which bodies are currently transiting THIS world's
+  // own sign. Changes day to day as planets move, and differs per world —
+  // a real connection between the live sky and the place the player stands.
+  const resonatingBodies = Object.entries(snapshot.positions_json)
+    .filter(([, longitude]) => signFromLongitude(longitude) === world.zodiacSign)
+    .map(([body]) => body);
+  if (resonatingBodies.length > 0) {
+    operations.push({
+      type: 'sign_resonance',
+      targetBiomeId: null,
+      payload: { bodies: resonatingBodies, sign: world.zodiacSign },
     });
   }
 

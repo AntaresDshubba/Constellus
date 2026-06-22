@@ -13,6 +13,15 @@
 
 import { useMemo } from 'react';
 import { Html } from '@react-three/drei';
+ * can see, identify by name, and enter — all twelve worlds are now
+ * playable. The player's own Sun sign is still highlighted distinctly
+ * (larger, gold), since making that legible at a glance is the whole
+ * point of a chart-seeded star map; it's just no longer the only one
+ * that can be entered.
+ */
+
+import { useMemo } from 'react';
+import { Html, Line } from '@react-three/drei';
 import { ZODIAC_SIGNS } from '../../types/astrology';
 import type { ZodiacSign } from '../../types/astrology';
 
@@ -20,6 +29,11 @@ interface StarMapSceneProps {
   sunSign: ZodiacSign | null;
   enterableSign: ZodiacSign;
   onSelectEnterable: () => void;
+  onSelectSign: (sign: ZodiacSign) => void;
+  /** Current Zodiac Mastery tier per world, for the per-star badge. Worlds not yet visited are simply absent. */
+  masteryTierBySign?: Partial<Record<ZodiacSign, number>>;
+  /** Member signs of each constellation the player has drawn — rendered as lines connecting their stars. */
+  drawnConstellationSigns?: ZodiacSign[][];
 }
 
 const SIGN_DISPLAY_NAME: Record<ZodiacSign, string> = {
@@ -29,6 +43,7 @@ const SIGN_DISPLAY_NAME: Record<ZodiacSign, string> = {
 };
 
 export function StarMapScene({ sunSign, enterableSign, onSelectEnterable }: StarMapSceneProps) {
+export function StarMapScene({ sunSign, onSelectSign, masteryTierBySign = {}, drawnConstellationSigns = [] }: StarMapSceneProps) {
   const starPositions = useMemo(
     () =>
       ZODIAC_SIGNS.map((sign, index) => {
@@ -42,6 +57,12 @@ export function StarMapScene({ sunSign, enterableSign, onSelectEnterable }: Star
     [],
   );
 
+  const positionBySign = useMemo(() => {
+    const map = {} as Record<ZodiacSign, [number, number, number]>;
+    for (const { sign, position } of starPositions) map[sign] = position;
+    return map;
+  }, [starPositions]);
+
   return (
     <>
       <color attach="background" args={['#05050f']} />
@@ -50,6 +71,23 @@ export function StarMapScene({ sunSign, enterableSign, onSelectEnterable }: Star
 
       {starPositions.map(({ sign, position }) => {
         const isEnterable = sign === enterableSign;
+      {/* Drawn constellations: a polyline through each one's member stars,
+          rendered under the stars so the star spheres sit on top. */}
+      {drawnConstellationSigns.map((signs, i) => (
+        <Line
+          key={`constellation-${i}`}
+          points={signs.map((s) => positionBySign[s])}
+          color="#9d4edd"
+          lineWidth={1.5}
+          transparent
+          opacity={0.55}
+        />
+      ))}
+
+      {starPositions.map(({ sign, position }) => {
+        // Every sign is enterable now; the Sun sign just gets the
+        // distinct gold, larger-star treatment so it still reads as
+        // "yours" at a glance.
         const isSunSign = sign === sunSign;
 
         return (
@@ -63,6 +101,14 @@ export function StarMapScene({ sunSign, enterableSign, onSelectEnterable }: Star
                 color={isEnterable ? '#9d4edd' : isSunSign ? '#ffd60a' : '#3a3a55'}
                 emissive={isEnterable ? '#9d4edd' : isSunSign ? '#ffd60a' : '#1a1a2e'}
                 emissiveIntensity={isEnterable ? 1.0 : isSunSign ? 0.8 : 0.3}
+              onClick={() => onSelectSign(sign)}
+              scale={isSunSign ? 1.6 : 1.3}
+            >
+              <sphereGeometry args={[0.5, 16, 16]} />
+              <meshStandardMaterial
+                color={isSunSign ? '#ffd60a' : '#9d4edd'}
+                emissive={isSunSign ? '#ffd60a' : '#9d4edd'}
+                emissiveIntensity={isSunSign ? 1.2 : 1.0}
               />
             </mesh>
 
@@ -71,12 +117,20 @@ export function StarMapScene({ sunSign, enterableSign, onSelectEnterable }: Star
                 style={{
                   color: isEnterable ? '#e0aaff' : isSunSign ? '#ffd60a' : '#6c6c8a',
                   fontFamily: 'sans-serif', fontSize: 13, fontWeight: isEnterable || isSunSign ? 700 : 400,
+                  color: isSunSign ? '#ffd60a' : '#e0aaff',
+                  fontFamily: 'sans-serif', fontSize: 13, fontWeight: 700,
                   whiteSpace: 'nowrap', textShadow: '0 0 6px rgba(0,0,0,0.8)',
                 }}
               >
                 {SIGN_DISPLAY_NAME[sign]}
                 {isEnterable && ' (Enter)'}
                 {isSunSign && !isEnterable && ' (Your Sun)'}
+                {isSunSign ? ' ★ (Your Sun)' : ' (Enter)'}
+                {masteryTierBySign[sign] !== undefined && (
+                  <span style={{ display: 'block', fontSize: 11, fontWeight: 400, opacity: 0.8 }}>
+                    Mastery Tier {masteryTierBySign[sign]}
+                  </span>
+                )}
               </div>
             </Html>
           </group>

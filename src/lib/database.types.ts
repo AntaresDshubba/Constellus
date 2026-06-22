@@ -43,6 +43,7 @@ import type { CosmicProfileRow } from '../types/cosmicProfile';
 import type { BaseLayerWorldRow, TransitSnapshotRow, WorldSaveRow } from '../types/world';
 import type { DailyAlignmentRow } from '../types/dailyAlignment';
 import type { CurrencyLedgerRow, CurrencyBalanceRow, MomentumRow } from '../types/progression';
+import type { CurrencyLedgerRow, CurrencyBalanceRow, MomentumRow, ZodiacMasteryRow, ConstellationDrawnRow, AstroBondRow, ArcProgressRow, StarPassProgressRow, StarPassClaimRow, StarwalkerRow } from '../types/progression';
 import type { AnalyticsEventRow } from '../types/analytics';
 
 export interface Database {
@@ -113,6 +114,48 @@ export interface Database {
         Row: AnalyticsEventRow;
         Insert: Omit<AnalyticsEventRow, 'id' | 'created_at'>;
         Update: Partial<AnalyticsEventRow>;
+        Relationships: [];
+      };
+      zodiac_mastery: {
+        Row: ZodiacMasteryRow;
+        Insert: Partial<ZodiacMasteryRow> & { user_id: string; zodiac_sign: string };
+        Update: Partial<ZodiacMasteryRow>;
+        Relationships: [];
+      };
+      constellations_drawn: {
+        Row: ConstellationDrawnRow;
+        Insert: Omit<ConstellationDrawnRow, 'drawn_at'> & { drawn_at?: string };
+        Update: Partial<ConstellationDrawnRow>;
+        Relationships: [];
+      };
+      astro_bond: {
+        Row: AstroBondRow;
+        Insert: Partial<AstroBondRow> & { user_id: string };
+        Update: Partial<AstroBondRow>;
+        Relationships: [];
+      };
+      arc_progress: {
+        Row: ArcProgressRow;
+        Insert: Partial<ArcProgressRow> & { user_id: string; zodiac_sign: string };
+        Update: Partial<ArcProgressRow>;
+        Relationships: [];
+      };
+      star_pass_progress: {
+        Row: StarPassProgressRow;
+        Insert: Partial<StarPassProgressRow> & { user_id: string; season_id: string };
+        Update: Partial<StarPassProgressRow>;
+        Relationships: [];
+      };
+      star_pass_claims: {
+        Row: StarPassClaimRow;
+        Insert: Omit<StarPassClaimRow, 'claimed_at'> & { claimed_at?: string };
+        Update: Partial<StarPassClaimRow>;
+        Relationships: [];
+      };
+      starwalker: {
+        Row: StarwalkerRow;
+        Insert: Partial<StarwalkerRow> & { user_id: string };
+        Update: Partial<StarwalkerRow>;
         Relationships: [];
       };
     };

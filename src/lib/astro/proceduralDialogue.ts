@@ -47,4 +47,29 @@ export function generateProceduralLine(challengeRating: ChallengeRating, focusPl
   const openers = OPENERS_BY_RATING[challengeRating];
   const opener = openers[Math.floor(rng() * openers.length)]!;
   return `Astro: "${opener} ${PLANET_FLAVOR[focusPlanet]}"`;
+// A closing touch whose warmth tracks the Astro Bond phase (GDD §10.4:
+// Astro speaks formally as a Stranger, shows personality as a Companion,
+// and mirrors emotionally as a Confidant). Phase 1 adds nothing (formal);
+// higher phases sometimes add a familiar closer. Deterministic via seed.
+const BOND_CLOSERS: Record<number, string[]> = {
+  1: [''],
+  2: ['', ' For what it’s worth, I think you’ve got this.'],
+  3: ['', ' I’ve got you.', ' We’ve been at this a while now — and I mean that.'],
+};
+
+export function generateProceduralLine(
+  challengeRating: ChallengeRating,
+  focusPlanet: Planet,
+  seed: string,
+  bondPhase = 1,
+): string {
+  const rng = createSeededRandom(`${seed}:procedural`);
+  const openers = OPENERS_BY_RATING[challengeRating];
+  const opener = openers[Math.floor(rng() * openers.length)]!;
+
+  // Phases above 3 (not reachable in this build) reuse the warmest set.
+  const closers = BOND_CLOSERS[Math.min(3, Math.max(1, bondPhase))]!;
+  const closer = closers[Math.floor(rng() * closers.length)]!;
+
+  return `Astro: "${opener} ${PLANET_FLAVOR[focusPlanet]}${closer}"`;
 }
