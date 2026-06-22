@@ -8,10 +8,6 @@
  * still gets the same context-recovery treatment via useContextRecovery
  * directly, since context loss is a platform risk for ANY WebGL canvas,
  * not just world screens.
- */
-
-import { Canvas } from '@react-three/fiber';
-import { Suspense } from 'react';
  *
  * It is also the home of Constellation Drawing: the panel lists the
  * astrological constellations, shows how many of each one's worlds the
@@ -26,8 +22,6 @@ import { OrbitControls } from '@react-three/drei';
 import { useContextRecovery } from '../../nexus-render/core/useContextRecovery';
 import { StarMapScene } from '../../nexus-render/r3f-backend/StarMapScene';
 import { useCosmicProfile } from '../../hooks/useCosmicProfile';
-
-const ENTERABLE_SIGN = 'scorpio' as const;
 import { getAllMasteryXp } from '../../lib/zodiacMastery';
 import { tierForXp } from '../../lib/gameLogic/zodiacMastery';
 import { getExploredSigns, getDrawnConstellationIds, drawConstellation } from '../../lib/constellations';
@@ -106,8 +100,6 @@ export function StarMapScreen() {
           {!loading && (
             <StarMapScene
               sunSign={profile?.sun_sign ?? null}
-              enterableSign={ENTERABLE_SIGN}
-              onSelectEnterable={() => navigate(`/world/${ENTERABLE_SIGN}`)}
               onSelectSign={(sign) => navigate(`/world/${sign}`)}
               masteryTierBySign={masteryTierBySign}
               drawnConstellationSigns={drawnConstellationSigns}
@@ -123,9 +115,6 @@ export function StarMapScreen() {
 
       <div style={{ position: 'absolute', top: 16, left: 16, color: '#e6e6f0', fontFamily: 'sans-serif' }}>
         <h2 style={{ margin: 0 }}>The Star Map</h2>
-        <p style={{ margin: '4px 0 0', fontSize: 13, opacity: 0.8 }}>Scorpio (Abyssia) is open. Tap its star to enter.</p>
-      </div>
-
         <p style={{ margin: '4px 0 0', fontSize: 13, opacity: 0.8 }}>All twelve worlds are open. Tap any star to enter — your Sun sign glows gold.</p>
         {drawMessage && <p style={{ margin: '6px 0 0', fontSize: 13, color: '#e0aaff' }}>{drawMessage}</p>}
       </div>

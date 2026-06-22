@@ -10,7 +10,6 @@
 
 import type { ZodiacSign } from './astrology';
 
-export type BiomeTheme = 'abyssal_trench' | 'bioluminescent_cavern' | 'obsidian_spire' | 'tidal_ruins';
 // The vocabulary of biome visual archetypes. Each world (src/lib/worldGen/
 // signWorlds.ts) is built from four of these, chosen to fit the sign's
 // element and character. The renderer (src/nexus-render/r3f-backend/Biome.tsx)
@@ -85,7 +84,6 @@ export type TransitSnapshotRow = {
   computed_at: string;
 };
 
-export type OverlayOperationType = 'tint_ambient' | 'spawn_marker' | 'pulse_landmark';
 export type OverlayOperationType = 'tint_ambient' | 'spawn_marker' | 'pulse_landmark' | 'lunar_glow' | 'sign_resonance';
 
 export interface OverlayOperation {
